@@ -12,6 +12,7 @@ extends Control
 @onready var model_label: Label              = %ModelLabel
 @onready var config_button: Button           = %ConfigButton
 @onready var config_dialog: Window           = %ConfigDialog
+@onready var mic_level_meter: Range          = %MicLevelMeter
 
 ## Whisper GDExtension node — may be null if the extension is not built yet.
 @onready var whisper: Node = %WhisperNode
@@ -111,6 +112,10 @@ func _on_record_start() -> void:
 	status_label.text  = "Recording…"
 	SignalBus.mic_started.emit()
 
+	# Reset the level meter
+	if mic_level_meter != null and mic_level_meter.has_method("reset"):
+		mic_level_meter.reset()
+
 	# Set up audio capture bus if not already done
 	if _audio_bus_idx == -1:
 		_setup_audio_capture()
@@ -126,6 +131,10 @@ func _on_record_stop() -> void:
 	record_button.text = "🎤  Hold to Record"
 	status_label.text  = "Processing…"
 	SignalBus.mic_stopped.emit()
+
+	# Reset the level meter
+	if mic_level_meter != null and mic_level_meter.has_method("reset"):
+		mic_level_meter.reset()
 
 	if _audio_player != null:
 		_audio_player.stop()
@@ -147,6 +156,30 @@ func _on_record_stop() -> void:
 func _process(_delta: float) -> void:
 	if _recording and _audio_effect != null:
 		_drain_audio_buffer()
+		_update_mic_level()
+
+
+func _update_mic_level() -> void:
+	if _audio_effect == null:
+		return
+	var frames_available := _audio_effect.get_frames_available()
+	if frames_available == 0:
+		return
+	var stereo: PackedVector2Array = _audio_effect.get_buffer(frames_available)
+
+	# Calculate RMS (root mean square) for level meter
+	var sum_sq := 0.0
+	for frame in stereo:
+		var mono := (frame.x + frame.y) * 0.5
+		sum_sq += mono * mono
+	var rms := sqrt(sum_sq / maxf(stereo.size(), 1.0))
+
+	# Emit to signal bus for other listeners
+	SignalBus.audio_level.emit(rms)
+
+	# Update the meter if available
+	if mic_level_meter != null and mic_level_meter.has_method("update_level"):
+		mic_level_meter.update_level(rms)
 
 
 func _drain_audio_buffer() -> void:
