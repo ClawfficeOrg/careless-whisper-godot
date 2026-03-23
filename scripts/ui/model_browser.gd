@@ -194,6 +194,6 @@ func _show_confirm_dialog(title: String, message: String) -> bool:
 	dialog.title = title
 	add_child(dialog)
 	dialog.popup_centered()
-	var result := await dialog.confirmed
+	var result: bool = await dialog.confirmed
 	dialog.queue_free()
 	return result

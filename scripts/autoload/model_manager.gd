@@ -118,7 +118,7 @@ func get_local_models() -> Array[String]:
 func is_model_downloaded(model_name: String) -> bool:
 	if not AVAILABLE_MODELS.has(model_name):
 		return false
-	var filename := AVAILABLE_MODELS[model_name].filename
+	var filename: String = AVAILABLE_MODELS[model_name].filename
 	return FileAccess.file_exists(MODELS_DIR.path_join(filename))
 
 
@@ -126,7 +126,7 @@ func is_model_downloaded(model_name: String) -> bool:
 func get_model_path(model_name: String) -> String:
 	if not AVAILABLE_MODELS.has(model_name):
 		return ""
-	var filename := AVAILABLE_MODELS[model_name].filename
+	var filename: String = AVAILABLE_MODELS[model_name].filename
 	return MODELS_DIR.path_join(filename)
 
 

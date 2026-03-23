@@ -141,7 +141,7 @@ func _load_model_threaded(path: String) -> void:
 	# Use a background thread so UI doesn't freeze
 	var thread := Thread.new()
 	thread.start(func():
-		var success := _whisper.load_model(path)
+		var success: bool = _whisper.load_model(path)
 		call_deferred("_finish_model_load", path.get_file(), success)
 	, Thread.PRIORITY_NORMAL)
 	# Store thread reference to prevent GC
