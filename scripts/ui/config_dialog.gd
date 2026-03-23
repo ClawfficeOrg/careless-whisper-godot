@@ -17,6 +17,9 @@ extends Window
 ## Whisper node reference (injected from Main scene via set_whisper_node)
 var _whisper: Node = null
 
+## Background thread for model loading
+var _load_thread: Thread = null
+
 # Pre-defined model names for the dropdown
 const KNOWN_MODELS: Array[String] = [
 	"ggml-tiny.en.bin",
@@ -129,6 +132,11 @@ func _on_load_model() -> void:
 		push_warning("[ConfigDialog] no model path specified")
 		return
 
+	# Disable UI while loading
+	load_button.disabled = true
+	load_button.text = "Loading…"
+	close_button.disabled = true
+
 	# Save the full path for next startup autoload
 	ConfigManager.set_value("whisper.model_path", path)
 	SignalBus.model_loading.emit(path.get_file())
@@ -136,10 +144,40 @@ func _on_load_model() -> void:
 	if _whisper != null and _whisper.has_method("load_model"):
 		_whisper.threads = ConfigManager.get_value("whisper.threads", 4)
 		_whisper.language = ConfigManager.get_value("whisper.language", "en")
-		_whisper.load_model(path)
+		# Load in a thread to keep UI responsive
+		_load_model_threaded(path)
 	else:
 		push_warning("[ConfigDialog] WhisperCpp node not available — placeholder mode")
 		# Simulate success so the UI updates
-		await get_tree().create_timer(0.3).timeout
-		SignalBus.model_ready.emit(path.get_file())
+		await get_tree().create_timer(0.5).timeout
+		_finish_model_load(path.get_file(), true)
 		ConfigManager.set_value("whisper.model", path.get_file().replace(".bin", ""))
+
+
+func _load_model_threaded(path: String) -> void:
+	# Use a background thread so UI doesn't freeze
+	var thread := Thread.new()
+	thread.start(func():
+		var success := _whisper.load_model(path)
+		call_deferred("_finish_model_load", path.get_file(), success)
+	, Thread.PRIORITY_NORMAL)
+	# Store thread reference to prevent GC
+	_load_thread = thread
+
+
+func _finish_model_load(model_name: String, success: bool) -> void:
+	# Re-enable UI
+	load_button.disabled = false
+	load_button.text = "Load Model"
+	close_button.disabled = false
+
+	# Clean up thread
+	if _load_thread != null and _load_thread.is_started():
+		_load_thread.wait_to_finish()
+		_load_thread = null
+
+	if success:
+		ConfigManager.set_value("whisper.model", model_name.replace(".bin", ""))
+		SignalBus.model_ready.emit(model_name)
+	else:
+		SignalBus.model_load_failed.emit("Failed to load model: %s" % model_name)
