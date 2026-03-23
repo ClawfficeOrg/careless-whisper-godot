@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://main_scene_cw"]
+[gd_scene load_steps=6 format=3 uid="uid://main_scene_cw"]
 
 [ext_resource type="Script" path="res://scripts/ui/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/ui/config_dialog.gd" id="2_cfgdlg"]
 [ext_resource type="Script" path="res://scripts/ui/loading_overlay.gd" id="3_loading"]
 [ext_resource type="Script" path="res://scripts/ui/model_browser.gd" id="4_models"]
+[ext_resource type="Script" path="res://scripts/ui/mic_level_meter.gd" id="5_mic"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -77,7 +78,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 8)
 value = 0.0
 show_percentage = false
-script = ExtResource("res://scripts/ui/mic_level_meter.gd")
+script = ExtResource("5_mic")
 
 [node name="StatusLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
