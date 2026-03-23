@@ -156,12 +156,21 @@ func _drain_audio_buffer() -> void:
 	if frames_available == 0:
 		return
 	var stereo: PackedVector2Array = _audio_effect.get_buffer(frames_available)
-	# Downmix to mono i16 LE
-	for v in stereo:
+
+	# Whisper requires 16kHz mono i16 LE.
+	# AudioEffectCapture runs at the bus mix rate (often 44100 or 48000).
+	# We downsample by keeping every N-th sample.
+	var mix_rate := AudioServer.get_mix_rate()
+	const TARGET_RATE := 16000
+	var step: float = mix_rate / float(TARGET_RATE)
+	var idx: float = 0.0
+	while idx < stereo.size():
+		var v: Vector2 = stereo[int(idx)]
 		var mono_f := clampf((v.x + v.y) * 0.5, -1.0, 1.0)
 		var sample := int(mono_f * 32767.0)
 		_pcm_buffer.append(sample & 0xFF)
 		_pcm_buffer.append((sample >> 8) & 0xFF)
+		idx += step
 
 
 # ---------------------------------------------------------------------------
