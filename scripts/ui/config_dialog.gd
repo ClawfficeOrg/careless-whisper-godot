@@ -57,6 +57,11 @@ func _load_current_config() -> void:
 			model_option.select(i)
 			break
 
+	# Populate the path field with the last saved path
+	var saved_path: String = ConfigManager.get_value("whisper.model_path", "")
+	if not saved_path.is_empty():
+		model_path_edit.text = saved_path
+
 	language_edit.text = ConfigManager.get_value("whisper.language", "en")
 	threads_spin.value = ConfigManager.get_value("whisper.threads", 4)
 
@@ -101,9 +106,13 @@ func _on_load_model() -> void:
 		push_warning("[ConfigDialog] no model path specified")
 		return
 
+	# Save the full path for next startup autoload
+	ConfigManager.set_value("whisper.model_path", path)
 	SignalBus.model_loading.emit(path.get_file())
 
 	if _whisper != null and _whisper.has_method("load_model"):
+		_whisper.threads = ConfigManager.get_value("whisper.threads", 4)
+		_whisper.language = ConfigManager.get_value("whisper.language", "en")
 		_whisper.load_model(path)
 	else:
 		push_warning("[ConfigDialog] WhisperCpp node not available — placeholder mode")

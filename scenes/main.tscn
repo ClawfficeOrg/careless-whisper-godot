@@ -12,7 +12,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main")
 
-[node name="WhisperNode" type="Node" parent="."]
+[node name="WhisperNode" type="WhisperCpp" parent="."]
 unique_name_in_owner = true
 
 [node name="Background" type="ColorRect" parent="."]

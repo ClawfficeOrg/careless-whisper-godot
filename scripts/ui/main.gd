@@ -42,6 +42,7 @@ func _ready() -> void:
 	_setup_ui()
 	_connect_signals()
 	_refresh_model_label()
+	_autoload_model()
 
 
 # ---------------------------------------------------------------------------
@@ -52,7 +53,7 @@ func _detect_whisper_extension() -> void:
 	# ClassDB.class_exists is the safe way to check for optional extensions.
 	if ClassDB.class_exists("WhisperCpp"):
 		_whisper_available = true
-		godot_print_rich("[color=green][WhisperCpp] GDExtension loaded[/color]")
+		print_rich("[color=green][WhisperCpp] GDExtension loaded[/color]")
 	else:
 		_whisper_available = false
 		push_warning("[main] WhisperCpp GDExtension not available — running in placeholder mode")
@@ -92,6 +93,9 @@ func _connect_signals() -> void:
 		whisper.transcription_complete.connect(SignalBus.transcription_completed.emit)
 		whisper.transcription_error.connect(SignalBus.transcription_error.emit)
 		whisper.model_loaded.connect(func(path): SignalBus.model_ready.emit(path.get_file()))
+
+	# Wire config dialog with the whisper node so it can load models
+	config_dialog.set_whisper_node(whisper)
 
 
 # ---------------------------------------------------------------------------
@@ -218,3 +222,19 @@ func _on_config_pressed() -> void:
 func _refresh_model_label() -> void:
 	var model_name: String = ConfigManager.get_value("whisper.model", "none")
 	model_label.text = "Model: %s" % model_name
+
+
+func _autoload_model() -> void:
+	if not _whisper_available or whisper == null:
+		return
+	var saved_path: String = ConfigManager.get_value("whisper.model_path", "")
+	if saved_path.is_empty():
+		status_label.text = "Ready — open Config to load a model"
+		return
+	if not FileAccess.file_exists(saved_path):
+		status_label.text = "Saved model not found: %s" % saved_path
+		return
+	status_label.text = "Loading model…"
+	whisper.threads = ConfigManager.get_value("whisper.threads", 4)
+	whisper.language = ConfigManager.get_value("whisper.language", "en")
+	whisper.load_model(saved_path)
