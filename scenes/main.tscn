@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://main_scene_cw"]
+[gd_scene load_steps=4 format=3 uid="uid://main_scene_cw"]
 
 [ext_resource type="Script" path="res://scripts/ui/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/ui/config_dialog.gd" id="2_cfgdlg"]
+[ext_resource type="Script" path="res://scripts/ui/loading_overlay.gd" id="3_loading"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -204,3 +205,51 @@ text = "Load Model"
 unique_name_in_owner = true
 layout_mode = 2
 text = "Close"
+
+[node name="LoadingOverlay" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_loading")
+
+[node name="Background" type="ColorRect" parent="LoadingOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="PanelContainer" type="PanelContainer" parent="LoadingOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -50.0
+offset_right = 150.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="LoadingOverlay/PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="LoadingOverlay/PanelContainer/VBox"]
+layout_mode = 2
+text = "Loading…"
+horizontal_alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="LoadingOverlay/PanelContainer/VBox"]
+layout_mode = 2
+value = 0.0
+show_percentage = false

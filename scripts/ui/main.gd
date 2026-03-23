@@ -13,6 +13,7 @@ extends Control
 @onready var config_button: Button           = %ConfigButton
 @onready var config_dialog: Window           = %ConfigDialog
 @onready var mic_level_meter: Range          = %MicLevelMeter
+@onready var loading_overlay: Control        = %LoadingOverlay
 
 ## Whisper GDExtension node — may be null if the extension is not built yet.
 @onready var whisper: Node = %WhisperNode
@@ -87,6 +88,7 @@ func _connect_signals() -> void:
 
 	SignalBus.model_ready.connect(_on_model_ready)
 	SignalBus.model_load_failed.connect(_on_model_load_failed)
+	SignalBus.model_loading.connect(_on_model_loading)
 	SignalBus.transcription_completed.connect(_on_transcription_completed)
 	SignalBus.transcription_error.connect(_on_transcription_error)
 
@@ -235,16 +237,26 @@ func _setup_audio_capture() -> void:
 # Signal handlers
 # ---------------------------------------------------------------------------
 
+func _on_model_loading(model_name: String) -> void:
+	status_label.text = "Loading model: %s" % model_name
+	if loading_overlay != null and loading_overlay.has_method("show_loading"):
+		loading_overlay.show_loading("Loading model: %s" % model_name)
+
+
 func _on_model_ready(model_name: String) -> void:
 	_model_loaded = true
 	_refresh_model_label()
 	status_label.text = "Model ready: %s" % model_name
+	if loading_overlay != null and loading_overlay.has_method("hide_loading"):
+		loading_overlay.hide_loading()
 
 
 func _on_model_load_failed(error: String) -> void:
 	_model_loaded = false
 	status_label.text = "Model failed to load"
 	output_label.text = "[color=red]Error loading model:[/color]\n%s" % error
+	if loading_overlay != null and loading_overlay.has_method("hide_loading"):
+		loading_overlay.hide_loading()
 
 
 func _on_transcription_completed(text: String) -> void:
