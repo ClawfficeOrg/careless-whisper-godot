@@ -29,3 +29,4 @@ models/*.bin
 # GDExtension builds (add to addons/ separately)
 # NOTE: the actual .so in addons/whisper_cpp/bin/ IS tracked (force-added)
 
+*.uid
