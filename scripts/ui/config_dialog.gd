@@ -1,5 +1,5 @@
 ## config_dialog.gd
-## Config dialog stub — Phase 1: model selection + language settings.
+## Config dialog — model selection, language settings, and mic input device.
 extends Window
 
 # ---------------------------------------------------------------------------
@@ -12,6 +12,7 @@ extends Window
 @onready var browse_button: Button       = %BrowseButton
 @onready var load_button: Button         = %LoadModelButton
 @onready var close_button: Button        = %CloseButton
+@onready var mic_option: OptionButton    = %MicOption
 
 ## Whisper node reference (injected from Main scene via set_whisper_node)
 var _whisper: Node = null
@@ -27,6 +28,7 @@ const KNOWN_MODELS: Array[String] = [
 
 func _ready() -> void:
 	_populate_model_dropdown()
+	_populate_mic_dropdown()
 	_load_current_config()
 	_connect_signals()
 
@@ -48,6 +50,19 @@ func _populate_model_dropdown() -> void:
 	for name in KNOWN_MODELS:
 		model_option.add_item(name)
 	model_option.add_item("Custom…")
+
+
+func _populate_mic_dropdown() -> void:
+	mic_option.clear()
+	var devices := AudioServer.get_input_device_list()
+	for device in devices:
+		mic_option.add_item(device)
+	# Select the currently active device
+	var current := AudioServer.get_input_device()
+	for i in mic_option.item_count:
+		if mic_option.get_item_text(i) == current:
+			mic_option.select(i)
+			break
 
 
 func _load_current_config() -> void:
@@ -73,6 +88,7 @@ func _connect_signals() -> void:
 	close_button.pressed.connect(hide)
 	language_edit.text_changed.connect(func(t): ConfigManager.set_value("whisper.language", t))
 	threads_spin.value_changed.connect(func(v): ConfigManager.set_value("whisper.threads", int(v)))
+	mic_option.item_selected.connect(_on_mic_selected)
 	close_requested.connect(hide)
 
 
@@ -85,6 +101,13 @@ func _on_model_selected(index: int) -> void:
 	if text == "Custom…":
 		return  # User will browse
 	ConfigManager.set_value("whisper.model", text.replace(".bin", "").replace("ggml-", ""))
+
+
+func _on_mic_selected(index: int) -> void:
+	var device := mic_option.get_item_text(index)
+	AudioServer.set_input_device(device)
+	ConfigManager.set_value("audio.input_device", device)
+	print("[Config] Mic input set to: %s" % device)
 
 
 func _on_browse() -> void:

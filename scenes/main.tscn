@@ -69,6 +69,14 @@ text = "🎤  Hold to Record"
 theme_override_font_sizes/font_size = 16
 toggle_mode = false
 
+[node name="MicLevelMeter" type="ProgressBar" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 8)
+value = 0.0
+show_percentage = false
+script = ExtResource("res://scripts/ui/mic_level_meter.gd")
+
 [node name="StatusLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -169,6 +177,19 @@ layout_mode = 2
 min_value = 1.0
 max_value = 32.0
 value = 4.0
+
+[node name="MicRow" type="HBoxContainer" parent="ConfigDialog/MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="MicLbl" type="Label" parent="ConfigDialog/MarginContainer/VBox/MicRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(100, 0)
+text = "Microphone:"
+
+[node name="MicOption" type="OptionButton" parent="ConfigDialog/MarginContainer/VBox/MicRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="ButtonRow" type="HBoxContainer" parent="ConfigDialog/MarginContainer/VBox"]
 layout_mode = 2
