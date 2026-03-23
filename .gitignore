@@ -18,7 +18,7 @@ mono_crash.*.json
 # Build outputs
 *.a
 *.o
-*.so
+# *.so — NOTE: do NOT ignore .so here; extension binaries in addons/ must be tracked
 *.dylib
 *.dll
 *.lib
@@ -26,16 +26,6 @@ mono_crash.*.json
 # Whisper models (large files)
 models/*.bin
 
-# IDE-specific
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS-specific
-.DS_Store
-Thumbs.db
-
 # GDExtension builds (add to addons/ separately)
-addons/whisper_cpp/bin/
+# NOTE: the actual .so in addons/whisper_cpp/bin/ IS tracked (force-added)
+
