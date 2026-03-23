@@ -1,0 +1,34 @@
+[gd_scene load_steps=2 format=3 uid="uid://cqx8h2m5ev8yd"]
+
+[ext_resource type="Script" path="res://scripts/speech_example.gd" id="1_example"]
+
+[node name="Example" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_example")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Careless Whisper - Speech Recognition Demo"
+horizontal_alignment = 1
+
+[node name="RecordButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Start Recording"
+
+[node name="OutputLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Transcribed text will appear here..."
+autowrap_mode = 2
