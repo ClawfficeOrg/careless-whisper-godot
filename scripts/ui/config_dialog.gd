@@ -5,7 +5,6 @@ extends Window
 # ---------------------------------------------------------------------------
 # UI references
 # ---------------------------------------------------------------------------
-@onready var model_option: OptionButton  = %ModelOption
 @onready var language_edit: LineEdit     = %LanguageEdit
 @onready var threads_spin: SpinBox       = %ThreadsSpin
 @onready var model_path_edit: LineEdit   = %ModelPathEdit
@@ -13,6 +12,7 @@ extends Window
 @onready var load_button: Button         = %LoadModelButton
 @onready var close_button: Button        = %CloseButton
 @onready var mic_option: OptionButton    = %MicOption
+@onready var model_browser: VBoxContainer = $MarginContainer/VBox/TabContainer/Models
 
 ## Whisper node reference (injected from Main scene via set_whisper_node)
 var _whisper: Node = null
@@ -20,17 +20,8 @@ var _whisper: Node = null
 ## Background thread for model loading
 var _load_thread: Thread = null
 
-# Pre-defined model names for the dropdown
-const KNOWN_MODELS: Array[String] = [
-	"ggml-tiny.en.bin",
-	"ggml-base.en.bin",
-	"ggml-small.en.bin",
-	"ggml-medium.en.bin",
-]
-
 
 func _ready() -> void:
-	_populate_model_dropdown()
 	_populate_mic_dropdown()
 	_load_current_config()
 	_connect_signals()
@@ -42,18 +33,14 @@ func _ready() -> void:
 
 func set_whisper_node(node: Node) -> void:
 	_whisper = node
+	# Pass whisper reference to model browser
+	if model_browser != null and model_browser.has_method("set_whisper_node"):
+		model_browser.set_whisper_node(node)
 
 
 # ---------------------------------------------------------------------------
 # Setup
 # ---------------------------------------------------------------------------
-
-func _populate_model_dropdown() -> void:
-	model_option.clear()
-	for name in KNOWN_MODELS:
-		model_option.add_item(name)
-	model_option.add_item("Custom…")
-
 
 func _populate_mic_dropdown() -> void:
 	mic_option.clear()
@@ -69,12 +56,6 @@ func _populate_mic_dropdown() -> void:
 
 
 func _load_current_config() -> void:
-	var current_model: String = ConfigManager.get_value("whisper.model", "base.en")
-	for i in model_option.item_count:
-		if model_option.get_item_text(i).contains(current_model):
-			model_option.select(i)
-			break
-
 	# Populate the path field with the last saved path
 	var saved_path: String = ConfigManager.get_value("whisper.model_path", "")
 	if not saved_path.is_empty():
@@ -85,7 +66,6 @@ func _load_current_config() -> void:
 
 
 func _connect_signals() -> void:
-	model_option.item_selected.connect(_on_model_selected)
 	browse_button.pressed.connect(_on_browse)
 	load_button.pressed.connect(_on_load_model)
 	close_button.pressed.connect(hide)
@@ -94,23 +74,26 @@ func _connect_signals() -> void:
 	mic_option.item_selected.connect(_on_mic_selected)
 	close_requested.connect(hide)
 
+	# Connect to model browser's load request
+	if model_browser != null:
+		model_browser.load_model_requested.connect(_on_model_browser_load)
+
 
 # ---------------------------------------------------------------------------
 # Handlers
 # ---------------------------------------------------------------------------
-
-func _on_model_selected(index: int) -> void:
-	var text := model_option.get_item_text(index)
-	if text == "Custom…":
-		return  # User will browse
-	ConfigManager.set_value("whisper.model", text.replace(".bin", "").replace("ggml-", ""))
-
 
 func _on_mic_selected(index: int) -> void:
 	var device := mic_option.get_item_text(index)
 	AudioServer.set_input_device(device)
 	ConfigManager.set_value("audio.input_device", device)
 	print("[Config] Mic input set to: %s" % device)
+
+
+func _on_model_browser_load(path: String) -> void:
+	# User clicked Load in the model browser
+	model_path_edit.text = path
+	_on_load_model()
 
 
 func _on_browse() -> void:
