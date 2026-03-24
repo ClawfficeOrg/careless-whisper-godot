@@ -103,6 +103,9 @@ func _connect_signals() -> void:
 	# Wire config dialog with the whisper node so it can load models
 	config_dialog.set_whisper_node(whisper)
 
+	# Wire VimController with whisper node for native cross-platform input
+	VimController.set_whisper_node(whisper)
+
 
 # ---------------------------------------------------------------------------
 # Vim mode
