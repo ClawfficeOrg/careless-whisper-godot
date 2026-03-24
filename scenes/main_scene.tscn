@@ -1,0 +1,5 @@
+[gd_scene]
+
+[node name="Main" type="Node"]
+
+[node name="MicMeter" instance=ExtResource(res://scenes/ui/MicMeter.tscn) parent="Main"]
