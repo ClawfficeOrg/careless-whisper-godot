@@ -14,6 +14,7 @@ extends Control
 @onready var config_dialog: Window           = %ConfigDialog
 @onready var mic_level_meter: Range          = %MicLevelMeter
 @onready var loading_overlay: Control        = %LoadingOverlay
+@onready var vim_mode_button: Button        = %VimModeButton
 
 ## Whisper GDExtension node — may be null if the extension is not built yet.
 @onready var whisper: Node = %WhisperNode
@@ -68,6 +69,7 @@ func _detect_whisper_extension() -> void:
 func _setup_ui() -> void:
 	record_button.text = "🎤  Hold to Record"
 	status_label.text  = "Ready"
+	_update_vim_button()
 
 	if not _whisper_available:
 		status_label.text = "⚠ GDExtension not built — placeholder mode"
@@ -85,6 +87,7 @@ func _connect_signals() -> void:
 	record_button.button_down.connect(_on_record_start)
 	record_button.button_up.connect(_on_record_stop)
 	config_button.pressed.connect(_on_config_pressed)
+	vim_mode_button.pressed.connect(_on_vim_mode_toggled)
 
 	SignalBus.model_ready.connect(_on_model_ready)
 	SignalBus.model_load_failed.connect(_on_model_load_failed)
@@ -99,6 +102,22 @@ func _connect_signals() -> void:
 
 	# Wire config dialog with the whisper node so it can load models
 	config_dialog.set_whisper_node(whisper)
+
+
+# ---------------------------------------------------------------------------
+# Vim mode
+# ---------------------------------------------------------------------------
+
+func _on_vim_mode_toggled() -> void:
+	VimController.enabled = not VimController.enabled
+	_update_vim_button()
+
+
+func _update_vim_button() -> void:
+	if VimController.enabled:
+		vim_mode_button.text = "Vim: ON"
+	else:
+		vim_mode_button.text = "Vim: OFF"
 
 
 # ---------------------------------------------------------------------------
