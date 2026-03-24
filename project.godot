@@ -21,6 +21,7 @@ run/main_scene="res://scenes/main.tscn"
 SignalBus="*res://scripts/autoload/signal_bus.gd"
 ConfigManager="*res://scripts/autoload/config_manager.gd"
 ModelManager="*res://scripts/autoload/model_manager.gd"
+CommandDispatcher="*res://scripts/autoload/command_dispatcher.gd"
 
 [display]
 
