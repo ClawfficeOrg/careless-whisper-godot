@@ -194,18 +194,30 @@ func _drain_audio_buffer() -> void:
 
 	# Whisper requires 16kHz mono i16 LE.
 	# AudioEffectCapture runs at the bus mix rate (often 44100 or 48000).
-	# We downsample by keeping every N-th sample.
-	var mix_rate := AudioServer.get_mix_rate()
-	const TARGET_RATE := 16000
-	var step: float = mix_rate / float(TARGET_RATE)
-	var idx: float = 0.0
-	while idx < stereo.size():
-		var v: Vector2 = stereo[int(idx)]
-		var mono_f := clampf((v.x + v.y) * 0.5, -1.0, 1.0)
-		var sample := int(mono_f * 32767.0)
+	# We downsample using linear interpolation for better quality.
+	var mix_rate: int = AudioServer.get_mix_rate()
+	const TARGET_RATE: int = 16000
+	var ratio: float = float(mix_rate) / float(TARGET_RATE)
+	var output_count: int = int(stereo.size() / ratio)
+
+	for i in range(output_count):
+		var src_idx: float = i * ratio
+		var idx0: int = int(src_idx)
+		var idx1: int = mini(idx0 + 1, stereo.size() - 1)
+		var frac: float = src_idx - float(idx0)
+
+		# Linear interpolation between adjacent samples
+		var v0: Vector2 = stereo[idx0]
+		var v1: Vector2 = stereo[idx1]
+		var interp: Vector2 = v0.lerp(v1, frac)
+
+		# Convert stereo to mono and clamp
+		var mono_f: float = clampf((interp.x + interp.y) * 0.5, -1.0, 1.0)
+		var sample: int = int(mono_f * 32767.0)
+
+		# Append as little-endian i16
 		_pcm_buffer.append(sample & 0xFF)
 		_pcm_buffer.append((sample >> 8) & 0xFF)
-		idx += step
 
 
 # ---------------------------------------------------------------------------
