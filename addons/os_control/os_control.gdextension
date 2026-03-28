@@ -1,0 +1,13 @@
+[configuration]
+
+entry_symbol = "gdext_rust_init"
+compatibility_minimum = "4.1"
+
+[libraries]
+
+windows.debug.x86_64 = "res://addons/os_control/bin/debug/careless_whisper_os.dll"
+windows.release.x86_64 = "res://addons/os_control/bin/release/careless_whisper_os.dll"
+macos.debug = "res://addons/os_control/bin/debug/libcareless_whisper_os.dylib"
+macos.release = "res://addons/os_control/bin/release/libcareless_whisper_os.dylib"
+linux.debug.x86_64 = "res://addons/os_control/bin/debug/libcareless_whisper_os.so"
+linux.release.x86_64 = "res://addons/os_control/bin/release/libcareless_whisper_os.so"
