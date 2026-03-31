@@ -146,6 +146,28 @@ to validate that required files are present before running or distributing.
 |-------|----------|
 | `LIBCLANG_PATH not set` | Set `$env:LIBCLANG_PATH` to the folder containing `libclang.dll` |
 | `cannot find -lvcruntime` | Install Visual Studio Build Tools with MSVC v143 |
-| `DLL not found at runtime` | Copy the built `.dll` to `addons\os_control\bin\windows\` |
+| `DLL not found at runtime` | Copy the built `.dll` to `addons\\os_control\\bin\\windows\\` |
 | `GetWindowRect failed` | Normal on headless/no-window sessions; not a crash |
-| `InputInjector not implemented` | SendInput wrappers are stubs — see `addons\os_control\src\input_injector.rs` |
+| `InputInjector not implemented` | SendInput wrappers are stubs — see `addons\\os_control\\src\\input_injector.rs` |
+
+---
+
+## Debugging Rust panics
+
+To get full Rust backtraces when the GDExtension panics, run Godot with RUST_BACKTRACE=1. A helper script is included:
+
+```powershell
+# Windows PowerShell
+.\scripts\run_godot_with_backtrace.sh --godot "C:/path/to/Godot.exe" --path .
+```
+
+This will print full Rust backtraces to the console (helpful for diagnosing panics in the Rust extension).
+
+---
+
+## Non-blocking model loading (recommended)
+
+The GDExtension now supports non-blocking model loads: the `load_model(path)` call will spawn a background thread to perform heavy file parsing and model initialization and will not call Godot APIs from that background thread. When loading completes the extension will send the result to the main thread and emit the `model_loaded` or `transcription_error` signal from the main thread.
+
+If you prefer a synchronous, blocking load (simpler, but UI will freeze), change the call site to run `load_model()` on the main thread (or modify the extension to provide a synchronous API). The non-blocking API is safer and recommended for desktop UI applications.
+
