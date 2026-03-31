@@ -138,23 +138,21 @@ func _on_load_model() -> void:
 
 
 func _load_model_threaded(path: String) -> void:
-	# Use a background thread so UI doesn't freeze
-	# With the updated WhisperCpp extension, load_model is non-blocking and
-	# will emit model_loaded/model_load_failed via the main-thread poll.
-	# We still call it from a short-lived thread to keep behavior consistent
-	# with older versions and avoid UI blocking if extension is sync.
-	var thread := Thread.new()
-	thread.start(func():
-		var success: bool = _whisper.load_model(path)
-		# If the extension returns a boolean success, call finish immediately.
-		# Otherwise the extension will emit model_loaded via the model_load_rx
-		# polling in the GDExtension's process() implementation.
-		if success:
-			call_deferred("_finish_model_load", path.get_file(), true)
-		# If not success, we wait for the extension to emit a failure signal
-	, Thread.PRIORITY_NORMAL)
-	# Store thread reference to prevent GC
-	_load_thread = thread
+	# Call load_model on the main thread. The WhisperCpp extension now
+	# performs non-blocking loading internally and will emit model_loaded or
+	# model_load_failed via the main-thread polling channel. Calling the
+	# extension from a GDScript Thread causes a cross-thread Godot API call
+	# (UB) so we must invoke it on the main thread.
+	call_deferred("_invoke_load_model_main", path)
+
+func _invoke_load_model_main(path: String) -> void:
+	if _whisper == null:
+		return
+	var success: bool = _whisper.load_model(path)
+	# If the extension returns immediate success, finish; otherwise wait
+	# for the model_loaded or model_load_failed signals emitted by the ext.
+	if success:
+		_finish_model_load(path.get_file(), true)
 
 
 func _finish_model_load(model_name: String, success: bool) -> void:
