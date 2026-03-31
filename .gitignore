@@ -30,3 +30,4 @@ models/*.bin
 # NOTE: the actual .so in addons/whisper_cpp/bin/ IS tracked (force-added)
 
 *.uid
+/addons/whisper_cpp/bin/
