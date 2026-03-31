@@ -180,30 +180,6 @@ func _on_record_stop() -> void:
 func _process(_delta: float) -> void:
 	if _recording and _audio_effect != null:
 		_drain_audio_buffer()
-		_update_mic_level()
-
-
-func _update_mic_level() -> void:
-	if _audio_effect == null:
-		return
-	var frames_available := _audio_effect.get_frames_available()
-	if frames_available == 0:
-		return
-	var stereo: PackedVector2Array = _audio_effect.get_buffer(frames_available)
-
-	# Calculate RMS (root mean square) for level meter
-	var sum_sq := 0.0
-	for frame in stereo:
-		var mono := (frame.x + frame.y) * 0.5
-		sum_sq += mono * mono
-	var rms := sqrt(sum_sq / maxf(stereo.size(), 1.0))
-
-	# Emit to signal bus for other listeners
-	SignalBus.audio_level.emit(rms)
-
-	# Update the meter if available
-	if mic_level_meter != null and mic_level_meter.has_method("update_level"):
-		mic_level_meter.update_level(rms)
 
 
 func _drain_audio_buffer() -> void:
@@ -213,6 +189,14 @@ func _drain_audio_buffer() -> void:
 	if frames_available == 0:
 		return
 	var stereo: PackedVector2Array = _audio_effect.get_buffer(frames_available)
+
+	# Calculate RMS from this batch and emit — MicMeter.gd listens via SignalBus
+	var sum_sq := 0.0
+	for frame: Vector2 in stereo:
+		var mono := (frame.x + frame.y) * 0.5
+		sum_sq += mono * mono
+	var rms := sqrt(sum_sq / maxf(float(stereo.size()), 1.0))
+	SignalBus.audio_level.emit(rms)
 
 	# Whisper requires 16kHz mono i16 LE.
 	# AudioEffectCapture runs at the bus mix rate (often 44100 or 48000).
