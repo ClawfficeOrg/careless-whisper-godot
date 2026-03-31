@@ -1,0 +1,13 @@
+# Ensure source files use LF in the repository
+*.rs text eol=lf
+*.c  text eol=lf
+*.cpp text eol=lf
+*.h  text eol=lf
+*.hpp text eol=lf
+*.gd text eol=lf
+*.gdextension text eol=lf
+# Keep binary files alone
+*.dll binary
+*.so  binary
+*.dylib binary
+addons/*/bin/** binary
