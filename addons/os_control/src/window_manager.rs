@@ -1,4 +1,4 @@
-use godot::prelude::*;
+use godot::prelude::{VarDictionary, Variant, Array, Dictionary};
 
 /// WindowManager - Cross-platform window enumeration and control
 ///
@@ -24,8 +24,8 @@ impl WindowManager {
     /// - height: i32 - window height
     /// - error: String - error message if failed
     #[func]
-    pub fn get_active_window(&self) -> Dictionary {
-        let mut dict = Dictionary::new();
+    pub fn get_active_window(&self) -> VarDictionary {
+        let mut dict = VarDictionary::new();
 
         #[cfg(target_os = "windows")]
         {
@@ -109,7 +109,7 @@ impl WindowManager {
                         dict.set("y", win.y);
                         dict.set("width", win.width);
                         dict.set("height", win.height);
-                        arr.push(dict.into());
+                        arr.push(Variant::from(dict));
                     }
                 }
                 Err(e) => {
@@ -131,7 +131,7 @@ impl WindowManager {
                         dict.set("y", win.y);
                         dict.set("width", win.width);
                         dict.set("height", win.height);
-                        arr.push(dict.into());
+                        arr.push(Variant::from(dict));
                     }
                 }
                 Err(e) => {
@@ -153,7 +153,7 @@ impl WindowManager {
                         dict.set("y", win.y);
                         dict.set("width", win.width);
                         dict.set("height", win.height);
-                        arr.push(dict.into());
+                        arr.push(Variant::from(dict));
                     }
                 }
                 Err(e) => {
