@@ -182,12 +182,12 @@ struct WindowInfo {
 impl WindowManager {
     fn get_active_window_windows(&self) -> Result<WindowInfo, String> {
         use std::mem;
-        use windows::Win32::Foundation::HWND;
+        use windows::Win32::Foundation::{HWND, RECT};
         use windows::Win32::UI::WindowsAndMessaging::*;
 
         unsafe {
             let hwnd = GetForegroundWindow();
-            if hwnd.0 == 0 {
+            if hwnd.0.is_null() {
                 return Err("No foreground window".to_string());
             }
 
