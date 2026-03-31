@@ -93,7 +93,7 @@ impl WindowManager {
     ///
     /// Returns an Array of Dictionaries, each with the same structure as get_active_window()
     #[func]
-    pub fn list_windows(&self) -> Array<Dictionary> {
+    pub fn list_windows(&self) -> Array<Variant> {
         let mut arr = Array::new();
 
         #[cfg(target_os = "windows")]
