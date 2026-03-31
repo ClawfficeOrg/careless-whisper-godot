@@ -123,30 +123,48 @@ impl InputInjector {
 }
 
 // Windows implementation
+//
+// NOTE: SendInput / CGEvent wrappers are not yet implemented.
+// Functions log a clear error via godot_error! and return false so callers
+// can surface the failure rather than silently succeeding.
 #[cfg(target_os = "windows")]
 impl InputInjector {
     fn type_text_windows(&self, text: &str) -> bool {
-        // TODO: Implement using SendInput
-        godot_print!("Typing text (Windows): {}", text);
-        true
+        // TODO: Implement using SendInput API
+        // Requires: windows crate with input feature, convert chars to INPUT structs
+        godot_error!(
+            "[InputInjector] type_text_windows is not yet implemented.              Text '{}' was NOT injected.              Implement via windows::Win32::UI::Input::KeyboardAndMouse::SendInput.",
+            text
+        );
+        false
     }
 
     fn press_key_windows(&self, keys: &[&str]) -> bool {
-        // TODO: Implement using SendInput
-        godot_print!("Pressing keys (Windows): {:?}", keys);
-        true
+        // TODO: Implement using SendInput API
+        // Map key name strings to virtual-key codes (VK_*) and send keydown+keyup pairs
+        godot_error!(
+            "[InputInjector] press_key_windows is not yet implemented.              Key combo {:?} was NOT pressed.              Implement via windows::Win32::UI::Input::KeyboardAndMouse::SendInput.",
+            keys
+        );
+        false
     }
 
     fn move_mouse_windows(&self, x: i32, y: i32) -> bool {
         // TODO: Implement using SetCursorPos
-        godot_print!("Moving mouse (Windows): ({}, {})", x, y);
-        true
+        godot_error!(
+            "[InputInjector] move_mouse_windows is not yet implemented.              Mouse was NOT moved to ({}, {}).              Implement via windows::Win32::UI::WindowsAndMessaging::SetCursorPos.",
+            x, y
+        );
+        false
     }
 
     fn click_mouse_windows(&self, button: &str) -> bool {
-        // TODO: Implement using mouse_event
-        godot_print!("Clicking mouse (Windows): {}", button);
-        true
+        // TODO: Implement using SendInput MOUSEINPUT
+        godot_error!(
+            "[InputInjector] click_mouse_windows is not yet implemented.              '{}' click was NOT sent.              Implement via windows::Win32::UI::Input::KeyboardAndMouse::SendInput.",
+            button
+        );
+        false
     }
 }
 
