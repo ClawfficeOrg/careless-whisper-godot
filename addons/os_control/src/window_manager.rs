@@ -109,7 +109,7 @@ impl WindowManager {
                         dict.set("y", win.y);
                         dict.set("width", win.width);
                         dict.set("height", win.height);
-                        arr.push(dict);
+                        arr.push(dict.into());
                     }
                 }
                 Err(e) => {
@@ -131,7 +131,7 @@ impl WindowManager {
                         dict.set("y", win.y);
                         dict.set("width", win.width);
                         dict.set("height", win.height);
-                        arr.push(dict);
+                        arr.push(dict.into());
                     }
                 }
                 Err(e) => {
@@ -153,7 +153,7 @@ impl WindowManager {
                         dict.set("y", win.y);
                         dict.set("width", win.width);
                         dict.set("height", win.height);
-                        arr.push(dict);
+                        arr.push(dict.into());
                     }
                 }
                 Err(e) => {
