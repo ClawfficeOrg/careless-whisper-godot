@@ -17,7 +17,7 @@ impl WindowManager {
     /// Returns a Dictionary with:
     /// - title: String - window title
     /// - app_name: String - application name
-    /// - process_id: i32 - process ID
+    /// - process_id: i64 - process ID
     /// - x: i32 - window X position
     /// - y: i32 - window Y position
     /// - width: i32 - window width
@@ -101,7 +101,7 @@ impl WindowManager {
             match self.list_windows_windows() {
                 Ok(windows) => {
                     for win in windows {
-                        let mut dict = Dictionary::new();
+                        let mut dict = VarDictionary::new();
                         dict.set("title", win.title);
                         dict.set("app_name", win.app_name);
                         dict.set("process_id", win.process_id);
@@ -109,7 +109,7 @@ impl WindowManager {
                         dict.set("y", win.y);
                         dict.set("width", win.width);
                         dict.set("height", win.height);
-                        arr.push(Variant::from(dict));
+                        let v = dict.to_variant(); arr.push(&v);
                     }
                 }
                 Err(e) => {
@@ -123,7 +123,7 @@ impl WindowManager {
             match self.list_windows_macos() {
                 Ok(windows) => {
                     for win in windows {
-                        let mut dict = Dictionary::new();
+                        let mut dict = VarDictionary::new();
                         dict.set("title", win.title);
                         dict.set("app_name", win.app_name);
                         dict.set("process_id", win.process_id);
@@ -131,7 +131,7 @@ impl WindowManager {
                         dict.set("y", win.y);
                         dict.set("width", win.width);
                         dict.set("height", win.height);
-                        arr.push(Variant::from(dict));
+                        let v = dict.to_variant(); arr.push(&v);
                     }
                 }
                 Err(e) => {
@@ -145,7 +145,7 @@ impl WindowManager {
             match self.list_windows_linux() {
                 Ok(windows) => {
                     for win in windows {
-                        let mut dict = Dictionary::new();
+                        let mut dict = VarDictionary::new();
                         dict.set("title", win.title);
                         dict.set("app_name", win.app_name);
                         dict.set("process_id", win.process_id);
@@ -153,7 +153,7 @@ impl WindowManager {
                         dict.set("y", win.y);
                         dict.set("width", win.width);
                         dict.set("height", win.height);
-                        arr.push(Variant::from(dict));
+                        let v = dict.to_variant(); arr.push(&v);
                     }
                 }
                 Err(e) => {
@@ -170,7 +170,8 @@ impl WindowManager {
 struct WindowInfo {
     title: String,
     app_name: String,
-    process_id: i32,
+    /// PID as i64 to accommodate large PIDs on 64-bit Windows
+    process_id: i64,
     x: i32,
     y: i32,
     width: i32,
@@ -182,35 +183,38 @@ struct WindowInfo {
 impl WindowManager {
     fn get_active_window_windows(&self) -> Result<WindowInfo, String> {
         use std::mem;
-        use windows::Win32::Foundation::{HWND, RECT};
+        use windows::Win32::Foundation::RECT;
         use windows::Win32::UI::WindowsAndMessaging::*;
 
         unsafe {
             let hwnd = GetForegroundWindow();
-            if hwnd.0.is_null() {
+            // IsWindow is the canonical way to validate an HWND
+            if !IsWindow(hwnd).as_bool() {
                 return Err("No foreground window".to_string());
             }
 
             // Get window title
-            let mut title = [0u16; 512];
-            let len = GetWindowTextW(hwnd, &mut title);
-            let title = String::from_utf16_lossy(&title[..len as usize]);
+            let mut title_buf = [0u16; 512];
+            let len = GetWindowTextW(hwnd, &mut title_buf);
+            let title = String::from_utf16_lossy(&title_buf[..len as usize]);
 
-            // Get window rect
+            // Get window rect — check return value
             let mut rect = mem::zeroed::<RECT>();
-            GetWindowRect(hwnd, &mut rect);
+            if !GetWindowRect(hwnd, &mut rect).as_bool() {
+                return Err("GetWindowRect failed".to_string());
+            }
 
             // Get process ID
             let mut process_id = 0u32;
             GetWindowThreadProcessId(hwnd, Some(&mut process_id));
 
-            // Get process name (simplified)
+            // Derive app name from title (simplified heuristic)
             let app_name = title.split(" - ").last().unwrap_or(&title).to_string();
 
             Ok(WindowInfo {
                 title,
                 app_name,
-                process_id: process_id as i32,
+                process_id: process_id as i64,
                 x: rect.left,
                 y: rect.top,
                 width: rect.right - rect.left,
@@ -220,8 +224,60 @@ impl WindowManager {
     }
 
     fn list_windows_windows(&self) -> Result<Vec<WindowInfo>, String> {
-        // TODO: Implement window enumeration using EnumWindows
-        Ok(vec![])
+        use std::mem;
+        use windows::Win32::Foundation::{BOOL, HWND, LPARAM, RECT};
+        use windows::Win32::UI::WindowsAndMessaging::*;
+
+        // Collect HWNDs via EnumWindows callback
+        let mut hwnds: Vec<HWND> = Vec::new();
+        let ptr = &mut hwnds as *mut _ as isize;
+
+        unsafe extern "system" fn enum_cb(hwnd: HWND, lparam: LPARAM) -> BOOL {
+            let hwnds = &mut *(lparam.0 as *mut Vec<HWND>);
+            // Only visible top-level windows with a non-empty title
+            if IsWindowVisible(hwnd).as_bool() && GetWindowTextLengthW(hwnd) > 0 {
+                hwnds.push(hwnd);
+            }
+            BOOL(1) // continue enumeration
+        }
+
+        unsafe {
+            if !EnumWindows(Some(enum_cb), LPARAM(ptr)).as_bool() {
+                return Err("EnumWindows failed".to_string());
+            }
+        }
+
+        let mut results = Vec::with_capacity(hwnds.len());
+        for hwnd in hwnds {
+            unsafe {
+                let mut title_buf = [0u16; 512];
+                let len = GetWindowTextW(hwnd, &mut title_buf);
+                if len == 0 {
+                    continue;
+                }
+                let title = String::from_utf16_lossy(&title_buf[..len as usize]);
+
+                let mut rect = mem::zeroed::<RECT>();
+                if !GetWindowRect(hwnd, &mut rect).as_bool() {
+                    continue; // skip windows whose rect we cannot read
+                }
+
+                let mut pid = 0u32;
+                GetWindowThreadProcessId(hwnd, Some(&mut pid));
+
+                let app_name = title.split(" - ").last().unwrap_or(&title).to_string();
+                results.push(WindowInfo {
+                    title,
+                    app_name,
+                    process_id: pid as i64,
+                    x: rect.left,
+                    y: rect.top,
+                    width: rect.right - rect.left,
+                    height: rect.bottom - rect.top,
+                });
+            }
+        }
+        Ok(results)
     }
 }
 
@@ -244,7 +300,7 @@ impl WindowManager {
             Ok(WindowInfo {
                 title: window.name.clone().unwrap_or_default(),
                 app_name: window.owner_name.clone().unwrap_or_default(),
-                process_id: window.owner_pid as i32,
+                process_id: window.owner_pid as i64,
                 x: window.bounds.origin.x as i32,
                 y: window.bounds.origin.y as i32,
                 width: window.bounds.size.width as i32,
@@ -265,7 +321,7 @@ impl WindowManager {
                 .map(|window| WindowInfo {
                     title: window.name.clone().unwrap_or_default(),
                     app_name: window.owner_name.clone().unwrap_or_default(),
-                    process_id: window.owner_pid as i32,
+                    process_id: window.owner_pid as i64,
                     x: window.bounds.origin.x as i32,
                     y: window.bounds.origin.y as i32,
                     width: window.bounds.size.width as i32,
@@ -280,33 +336,22 @@ impl WindowManager {
 #[cfg(target_os = "linux")]
 impl WindowManager {
     fn get_active_window_linux(&self) -> Result<WindowInfo, String> {
-        use xcb::x;
 
         let (conn, screen_num) = xcb::Connection::connect(None)
             .map_err(|e| format!("Failed to connect to X server: {}", e))?;
 
         let setup = conn.get_setup();
-        let screen = setup
+        let _screen = setup
             .roots()
             .nth(screen_num as usize)
             .ok_or("Failed to get screen")?;
 
-        // Get active window using EWMH
-        let root = screen.root();
-        let active_window_cookie = conn.send_request(&x::GetProperty {
-            delete: false,
-            window: root,
-            property: x::ATOM_WM_NAME,
-            r#type: x::ATOM_WINDOW,
-            long_offset: 0,
-            long_length: 1,
-        });
-
         // Simplified implementation - just return basic info
+        // TODO: Use EWMH _NET_ACTIVE_WINDOW atom for a real implementation
         Ok(WindowInfo {
             title: "Unknown".to_string(),
             app_name: "Unknown".to_string(),
-            process_id: 0,
+            process_id: 0_i64,
             x: 0,
             y: 0,
             width: 0,
@@ -315,7 +360,7 @@ impl WindowManager {
     }
 
     fn list_windows_linux(&self) -> Result<Vec<WindowInfo>, String> {
-        // TODO: Implement X11 window enumeration
+        // TODO: Implement X11 window enumeration via xcb
         Ok(vec![])
     }
 }
