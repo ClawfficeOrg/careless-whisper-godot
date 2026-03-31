@@ -20,7 +20,9 @@ objc = "0.2"
 core-graphics = "0.24"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-xcb = { version = "1.4", features = ["xkb", "randr", "ewmh"] }
+# Use the xcb crate for X protocol bindings and xcb-wm for EWMH helpers
+xcb = { version = "1.7", features = ["xkb", "randr"] }
+xcb-wm = "0.1"
 
 [profile.release]
 opt-level = 3
