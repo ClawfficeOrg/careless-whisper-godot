@@ -82,8 +82,8 @@ func _ready() -> void:
 ## List all available model names
 func get_available_models() -> Array[String]:
 	var models: Array[String] = []
-	for name in AVAILABLE_MODELS:
-		models.append(name)
+	for model_name in AVAILABLE_MODELS:
+		models.append(model_name)
 	return models
 
 
