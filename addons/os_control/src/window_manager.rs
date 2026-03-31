@@ -200,8 +200,8 @@ impl WindowManager {
 
             // Get window rect — check return value
             let mut rect = mem::zeroed::<RECT>();
-            if !GetWindowRect(hwnd, &mut rect).as_bool() {
-                return Err("GetWindowRect failed".to_string());
+            if let Err(e) = GetWindowRect(hwnd, &mut rect) {
+                return Err(format!("GetWindowRect failed: {}", e));
             }
 
             // Get process ID
@@ -242,8 +242,8 @@ impl WindowManager {
         }
 
         unsafe {
-            if !EnumWindows(Some(enum_cb), LPARAM(ptr)).as_bool() {
-                return Err("EnumWindows failed".to_string());
+            if let Err(e) = EnumWindows(Some(enum_cb), LPARAM(ptr)) {
+                return Err(format!("EnumWindows failed: {}", e));
             }
         }
 
@@ -258,7 +258,7 @@ impl WindowManager {
                 let title = String::from_utf16_lossy(&title_buf[..len as usize]);
 
                 let mut rect = mem::zeroed::<RECT>();
-                if !GetWindowRect(hwnd, &mut rect).as_bool() {
+                if let Err(_e) = GetWindowRect(hwnd, &mut rect) {
                     continue; // skip windows whose rect we cannot read
                 }
 
