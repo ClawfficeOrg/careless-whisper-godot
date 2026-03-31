@@ -31,3 +31,23 @@ models/*.bin
 
 *.uid
 /addons/whisper_cpp/bin/
+# Rust/Cargo build artifacts
+/target/
+**/target/
+**/target/**
+
+# Native binaries produced by builds - keep tracked addons explicitly where needed
+# but ignore general native bin artifacts produced by local builds
+**/*.pdb
+**/*.exp
+**/*.lib
+
+# Godot addon build dirs
+addons/*/bin/
+addons/*/target/
+
+# Editor / OS files
+.vscode/
+.idea/
+*.swp
+.DS_Store
