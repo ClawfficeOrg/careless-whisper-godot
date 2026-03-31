@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  rust-check:
+    name: Rust check (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install LLVM (Windows, for bindgen)
+        if: runner.os == 'Windows'
+        run: choco install llvm -y
+        shell: powershell
+
+      - name: Set LIBCLANG_PATH (Windows)
+        if: runner.os == 'Windows'
+        run: echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" >> $env:GITHUB_ENV
+        shell: powershell
+
+      - name: cargo check
+        working-directory: addons/os_control
+        run: cargo check --target ${{ matrix.target }}
+
+      - name: cargo clippy
+        working-directory: addons/os_control
+        run: cargo clippy --target ${{ matrix.target }} -- -D warnings
+
+  godot-parse:
+    name: Godot headless parse (ubuntu)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot
+        run: |
+          wget -q "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip" \
+               -O /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.3-stable_linux.x86_64
+          echo "/tmp/godot" >> $GITHUB_PATH
+
+      - name: Parse GDScript files
+        run: |
+          /tmp/godot/Godot_v4.3-stable_linux.x86_64 \
+            --headless \
+            --path . \
+            --quit-after 2 \
+            --script scripts/ui/main.gd \
+          2>&1 | tee /tmp/godot_parse.log
+          # Treat any ERROR: line as failure
+          if grep -q "^ERROR:" /tmp/godot_parse.log; then
+            echo "GDScript parse errors detected"
+            exit 1
+          fi
