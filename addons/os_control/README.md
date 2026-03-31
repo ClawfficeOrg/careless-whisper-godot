@@ -1,119 +1,34 @@
-# OS Control GDExtension
+# os_control addon — Input & Window Control
 
-Cross-platform window management and input injection for careless-whisper.
+This addon exposes OS-level controls to Godot via a GDExtension. It provides:
 
-## Features
+- Window enumeration and control
+- Input injection (keyboard/mouse)
+- Platform helpers for macOS and Linux (partial)
 
-- **WindowManager** - Get active window info, list all windows
-- **InputInjector** - Type text, press keys, move/click mouse
+## Testing Input Injection (Windows)
 
-## Supported Platforms
+1. Build the os_control extension on Windows (MSVC):
 
-- ✅ Windows (Win32 API)
-- ✅ macOS (Cocoa/CoreGraphics)
-- ⚠️ Linux (X11 only - Wayland support limited)
-
-## Building
-
-### Prerequisites
-
-- Rust toolchain (1.70+)
-- Godot 4.6
-- Platform-specific dev libraries
-
-### Linux
-
-```bash
-sudo apt-get install libxcb1-dev libxcb-randr0-dev libxcb-ewmh-dev
+```powershell
+cd addons\os_control
+cargo build --release --target x86_64-pc-windows-msvc
+# Copy the DLL to the project bin
+copy target\x86_64-pc-windows-msvc\release\careless_whisper_os.dll ..\..\addons\os_control\bin\windows\careless_whisper_os.dll -Force
 ```
 
-### Build Steps
+2. Open the project in Godot on Windows and open the scene:
+   `res://scenes/test/input_injector_test.tscn`
 
-```bash
-cd addons/os_control
-cargo build --release
-```
+3. Click the buttons to exercise functions:
+   - Type text: sends Unicode text via SendInput
+   - Press Ctrl+C: simulates Ctrl+C key combo
+   - Move mouse: moves cursor using SetCursorPos
+   - Left click: simulates left mouse click
 
-The shared library will be generated at:
-- Windows: `target/release/careless_whisper_os.dll`
-- macOS: `target/release/libcareless_whisper_os.dylib`
-- Linux: `target/release/libcareless_whisper_os.so`
+Notes:
+- Input injection requires the project setting to allow simulated input. Check Project Settings > Input.
+- SendInput may require the Godot window to have focus or for the target application to accept simulated input.
+- Mapping of keys is basic; extend `map_key()` in `addons/os_control/src/input_injector.rs` for more keys.
 
-Copy to `bin/` directory:
-```bash
-mkdir -p bin/release
-cp target/release/libcareless_whisper_os.* bin/release/
-```
-
-## Usage in GDScript
-
-```gdscript
-# Get active window info
-var window_manager = WindowManager.new()
-var active = window_manager.get_active_window()
-print("Active window: ", active.title)
-print("App: ", active.app_name)
-print("Position: ", active.x, ", ", active.y)
-print("Size: ", active.width, "x", active.height)
-
-# List all windows
-var windows = window_manager.list_windows()
-for win in windows:
-    print(win.title, " - ", win.app_name)
-
-# Type text
-var injector = InputInjector.new()
-injector.type_text("Hello, World!")
-
-# Press key combo
-injector.press_key("ctrl+c")
-
-# Move mouse
-injector.move_mouse(100, 200)
-
-# Click mouse
-injector.click_mouse("left")
-```
-
-## Platform Limitations
-
-### Linux (Wayland)
-- Window enumeration requires compositor support
-- KDE: Works via kdotool
-- GNOME/Mutter: **No support** for external window enumeration
-- Input injection may require accessibility permissions
-
-### macOS
-- Requires Accessibility permissions (System Preferences → Privacy)
-- Screen Recording permission for window titles
-
-### Windows
-- No special permissions required
-- Full support via Win32 API
-
-## Implementation Status
-
-| Feature | Windows | macOS | Linux |
-|---------|---------|-------|-------|
-| Get active window | ⚠️ Stub | ⚠️ Stub | ⚠️ Stub |
-| List windows | ⚠️ Stub | ⚠️ Stub | ⚠️ Stub |
-| Type text | ⚠️ Stub | ⚠️ Stub | ⚠️ Stub |
-| Press keys | ⚠️ Stub | ⚠️ Stub | ⚠️ Stub |
-| Move mouse | ⚠️ Stub | ⚠️ Stub | ⚠️ Stub |
-| Click mouse | ⚠️ Stub | ⚠️ Stub | ⚠️ Stub |
-
-⚠️ = Scaffolded, needs implementation
-
-## Next Steps
-
-1. Implement Windows input injection using SendInput
-2. Implement macOS input injection using CGEvent
-3. Implement Linux input injection using XTest
-4. Add accessibility API integration for UI element detection
-5. Add OCR fallback for apps without accessibility support
-
-## References
-
-- [active-win-pos-rs](https://github.com/dimusic/active-win-pos-rs)
-- [godot-rust/gdext](https://github.com/godot-rust/gdext)
-- [enigo](https://github.com/enigo-rs/enigo) - Cross-platform input simulation
+If you encounter issues, paste Godot console logs here and I will iterate on mappings and flags.
