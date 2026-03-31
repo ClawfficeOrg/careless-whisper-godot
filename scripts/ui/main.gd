@@ -204,12 +204,12 @@ func _drain_audio_buffer() -> void:
 	var mix_rate: int = AudioServer.get_mix_rate()
 	const TARGET_RATE: int = 16000
 	var ratio: float = float(mix_rate) / float(TARGET_RATE)
-	var output_count: int = int(stereo.size() / ratio)
+	var output_count: int = int(round(float(stereo.size()) / ratio))
 
 	for i in range(output_count):
 		var src_idx: float = i * ratio
 		var idx0: int = int(src_idx)
-		var idx1: int = mini(idx0 + 1, stereo.size() - 1)
+		var idx1: int = max(0, min(idx0 + 1, stereo.size() - 1))
 		var frac: float = src_idx - float(idx0)
 
 		# Linear interpolation between adjacent samples
@@ -219,7 +219,7 @@ func _drain_audio_buffer() -> void:
 
 		# Convert stereo to mono and clamp
 		var mono_f: float = clampf((interp.x + interp.y) * 0.5, -1.0, 1.0)
-		var sample: int = int(mono_f * 32767.0)
+		var sample: int = int(round(mono_f * 32767.0))
 
 		# Append as little-endian i16
 		_pcm_buffer.append(sample & 0xFF)
