@@ -1,4 +1,4 @@
-use godot::prelude::{VarDictionary, Variant, Array, Dictionary};
+use godot::prelude::*;
 
 /// WindowManager - Cross-platform window enumeration and control
 ///
