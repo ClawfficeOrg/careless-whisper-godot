@@ -190,8 +190,10 @@ func delete_model(model_name: String) -> bool:
 # ---------------------------------------------------------------------------
 
 func _ensure_models_dir() -> void:
-	if not DirAccess.dir_exists_absolute(MODELS_DIR):
-		DirAccess.make_dir_recursive_absolute(MODELS_DIR)
+	# DirAccess.dir_exists_absolute requires a native (globalized) path.
+	# For user:// paths we check via DirAccess.open() instead.
+	if DirAccess.open(MODELS_DIR) == null:
+		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(MODELS_DIR))
 
 
 func _monitor_download_progress(model_name: String, dest_path: String, expected_size: int) -> void:

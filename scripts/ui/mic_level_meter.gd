@@ -15,7 +15,7 @@ extends Range
 var _peak_value: float = 0.0
 var _peak_timer: float = 0.0
 
-@onready var _style_box: StyleBoxFlat = StyleBoxFlat.new()
+var _style_box: StyleBoxFlat = StyleBoxFlat.new()
 
 
 func _ready() -> void:

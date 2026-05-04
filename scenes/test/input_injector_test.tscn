@@ -1,13 +1,15 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/input_injector_test.gd" id="1_test"]
 
 [node name="InputInjectorTest" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-script = ExtResource( 1 )
+script = ExtResource("1_test")
 
 [node name="VBox" type="VBoxContainer" parent="."]
-margin_left = 24
-margin_top = 24
+offset_left = 24
+offset_top = 24
 
 [node name="Label" type="Label" parent="VBox"]
 text = "InputInjector Test"
@@ -26,5 +28,3 @@ text = "Left click"
 
 [node name="OutputLabel" type="Label" parent="VBox"]
 text = "Output:"
-
-[ext_resource name="InputInjectorTest.gd" type="Script" path="res://scripts/test/input_injector_test.gd"]

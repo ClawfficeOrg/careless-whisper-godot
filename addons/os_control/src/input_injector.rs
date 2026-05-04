@@ -130,7 +130,9 @@ impl InputInjector {
 #[cfg(target_os = "windows")]
 impl InputInjector {
     fn type_text_windows(&self, text: &str) -> bool {
-        use windows::Win32::UI::Input::KeyboardAndMouse::{INPUT, INPUT_0, KEYBDINPUT, SendInput, KEYEVENTF_UNICODE, KEYEVENTF_KEYUP};
+        use windows::Win32::UI::Input::KeyboardAndMouse::{
+            SendInput, INPUT, INPUT_0, INPUT_TYPE, KEYBDINPUT, KEYEVENTF_KEYUP, KEYEVENTF_UNICODE,
+        };
 
         if text.is_empty() {
             return false;
@@ -138,11 +140,29 @@ impl InputInjector {
 
         let mut inputs: Vec<INPUT> = Vec::with_capacity(text.encode_utf16().count() * 2);
         for ch in text.encode_utf16() {
-            let ki = KEYBDINPUT { wVk: 0, wScan: ch, dwFlags: KEYEVENTF_UNICODE.0 as u32, time: 0, dwExtraInfo: 0 };
-            let input = INPUT { Anonymous: INPUT_0 { ki } };
+            let ki = KEYBDINPUT {
+                wVk: windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL_KEY(0),
+                wScan: ch,
+                dwFlags: KEYEVENTF_UNICODE,
+                time: 0,
+                dwExtraInfo: 0,
+            };
+            let input = INPUT {
+                r#type: INPUT_TYPE(1),
+                Anonymous: INPUT_0 { ki },
+            };
             inputs.push(input);
-            let ki_up = KEYBDINPUT { wVk: 0, wScan: ch, dwFlags: (KEYEVENTF_UNICODE.0 | KEYEVENTF_KEYUP.0) as u32, time: 0, dwExtraInfo: 0 };
-            let input_up = INPUT { Anonymous: INPUT_0 { ki: ki_up } };
+            let ki_up = KEYBDINPUT {
+                wVk: windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL_KEY(0),
+                wScan: ch,
+                dwFlags: KEYEVENTF_UNICODE | KEYEVENTF_KEYUP,
+                time: 0,
+                dwExtraInfo: 0,
+            };
+            let input_up = INPUT {
+                r#type: INPUT_TYPE(1),
+                Anonymous: INPUT_0 { ki: ki_up },
+            };
             inputs.push(input_up);
         }
 
@@ -155,10 +175,13 @@ impl InputInjector {
         }
 
         true
-}
+    }
 
     fn press_key_windows(&self, keys: &[&str]) -> bool {
-        use windows::Win32::UI::Input::KeyboardAndMouse::{INPUT, INPUT_0, KEYBDINPUT, SendInput, KEYEVENTF_KEYUP};
+        use windows::Win32::UI::Input::KeyboardAndMouse::{
+            SendInput, INPUT, INPUT_0, INPUT_TYPE, KEYBDINPUT, KEYBD_EVENT_FLAGS, KEYEVENTF_KEYUP,
+            VIRTUAL_KEY,
+        };
 
         if keys.is_empty() {
             return false;
@@ -179,14 +202,32 @@ impl InputInjector {
         let mut inputs: Vec<INPUT> = Vec::new();
         for &k in keys.iter() {
             if let Some(vk) = map_key(k) {
-                let ki = KEYBDINPUT { wVk: vk as u16, wScan: 0, dwFlags: 0, time: 0, dwExtraInfo: 0 };
-                inputs.push(INPUT { Anonymous: INPUT_0 { ki } });
+                let ki = KEYBDINPUT {
+                    wVk: VIRTUAL_KEY(vk),
+                    wScan: 0,
+                    dwFlags: KEYBD_EVENT_FLAGS(0),
+                    time: 0,
+                    dwExtraInfo: 0,
+                };
+                inputs.push(INPUT {
+                    r#type: INPUT_TYPE(1),
+                    Anonymous: INPUT_0 { ki },
+                });
             }
         }
         for &k in keys.iter().rev() {
             if let Some(vk) = map_key(k) {
-                let ki = KEYBDINPUT { wVk: vk as u16, wScan: 0, dwFlags: KEYEVENTF_KEYUP.0 as u32, time: 0, dwExtraInfo: 0 };
-                inputs.push(INPUT { Anonymous: INPUT_0 { ki } });
+                let ki = KEYBDINPUT {
+                    wVk: VIRTUAL_KEY(vk),
+                    wScan: 0,
+                    dwFlags: KEYEVENTF_KEYUP,
+                    time: 0,
+                    dwExtraInfo: 0,
+                };
+                inputs.push(INPUT {
+                    r#type: INPUT_TYPE(1),
+                    Anonymous: INPUT_0 { ki },
+                });
             }
         }
 
@@ -199,23 +240,32 @@ impl InputInjector {
         }
 
         true
-}
+    }
 
     fn move_mouse_windows(&self, x: i32, y: i32) -> bool {
         use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
         unsafe {
-            let ok = SetCursorPos(x, y).as_bool();
+            let ok = SetCursorPos(x, y).is_ok();
             if !ok {
-                godot_error!("[InputInjector] SetCursorPos failed to move to ({}, {})", x, y);
+                godot_error!(
+                    "[InputInjector] SetCursorPos failed to move to ({}, {})",
+                    x,
+                    y
+                );
                 return false;
             }
         }
         true
-}
+    }
 
     fn click_mouse_windows(&self, button: &str) -> bool {
-        use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEINPUT, SendInput, INPUT, INPUT_0};
-        use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP, MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP};
+        use windows::Win32::UI::Input::KeyboardAndMouse::{
+            SendInput, INPUT, INPUT_0, INPUT_TYPE, MOUSEINPUT,
+        };
+        use windows::Win32::UI::Input::KeyboardAndMouse::{
+            MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP,
+            MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP,
+        };
 
         let (down, up) = match button.to_lowercase().as_str() {
             "left" => (MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP),
@@ -227,22 +277,45 @@ impl InputInjector {
             }
         };
 
-        let mi_down = MOUSEINPUT { dx: 0, dy: 0, mouseData: 0, dwFlags: down.0, time: 0, dwExtraInfo: 0 };
-        let mi_up = MOUSEINPUT { dx: 0, dy: 0, mouseData: 0, dwFlags: up.0, time: 0, dwExtraInfo: 0 };
-        let input_down = INPUT { Anonymous: INPUT_0 { mi: mi_down } };
-        let input_up = INPUT { Anonymous: INPUT_0 { mi: mi_up } };
+        let mi_down = MOUSEINPUT {
+            dx: 0,
+            dy: 0,
+            mouseData: 0,
+            dwFlags: down,
+            time: 0,
+            dwExtraInfo: 0,
+        };
+        let mi_up = MOUSEINPUT {
+            dx: 0,
+            dy: 0,
+            mouseData: 0,
+            dwFlags: up,
+            time: 0,
+            dwExtraInfo: 0,
+        };
+        let input_down = INPUT {
+            r#type: INPUT_TYPE(0),
+            Anonymous: INPUT_0 { mi: mi_down },
+        };
+        let input_up = INPUT {
+            r#type: INPUT_TYPE(0),
+            Anonymous: INPUT_0 { mi: mi_up },
+        };
         let inputs = [input_down, input_up];
 
         unsafe {
             let sent = SendInput(&inputs, std::mem::size_of::<INPUT>() as i32);
             if sent == 0 {
-                godot_error!("[InputInjector] SendInput failed for mouse button: {}", button);
+                godot_error!(
+                    "[InputInjector] SendInput failed for mouse button: {}",
+                    button
+                );
                 return false;
             }
         }
 
         true
-}
+    }
 }
 
 // macOS implementation

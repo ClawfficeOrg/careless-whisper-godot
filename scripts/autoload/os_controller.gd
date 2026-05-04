@@ -10,8 +10,8 @@ extends Node
 
 class_name OSController
 
-var window_manager: RefCounted
-var input_injector: RefCounted
+var window_manager: Object = null
+var input_injector: Object = null
 
 signal command_executed(command: String, success: bool)
 signal window_changed(window_info: Dictionary)
@@ -22,12 +22,12 @@ var _last_window: Dictionary = {}
 func _ready() -> void:
 	# Load GDExtension classes
 	if ClassDB.class_exists("WindowManager"):
-		window_manager = ClassDB.instantiate("WindowManager") as RefCounted
+		window_manager = ClassDB.instantiate("WindowManager")
 	else:
 		push_error("WindowManager class not found - OS control GDExtension not loaded")
 
 	if ClassDB.class_exists("InputInjector"):
-		input_injector = ClassDB.instantiate("InputInjector") as RefCounted
+		input_injector = ClassDB.instantiate("InputInjector")
 	else:
 		push_error("InputInjector class not found - OS control GDExtension not loaded")
 
@@ -125,7 +125,7 @@ func execute_vim_command(command: String) -> bool:
 func focus_window(window_name: String) -> bool:
 	var windows: Array = list_windows()
 	for win: Dictionary in windows:
-		if win.title.to_lower().contains(window_name.to_lower()):
+		if (win.get("title", "") as String).to_lower().contains(window_name.to_lower()):
 			push_warning("Window focusing not yet implemented")
 			return false
 	push_warning("Window not found: " + window_name)
@@ -138,9 +138,11 @@ func announce_active_window() -> String:
 	if win.has("error"):
 		return "Error: " + str(win.get("error", ""))
 
-	var text: String = "Active window: %s" % win.title
-	if not (win.get("app_name", "") as String).is_empty():
-		text += " in %s" % win.app_name
+	var title: String = win.get("title", "")
+	var app_name: String = win.get("app_name", "")
+	var text: String = "Active window: %s" % title
+	if not app_name.is_empty():
+		text += " in %s" % app_name
 	return text
 
 
@@ -149,7 +151,7 @@ func _check_active_window() -> void:
 	var current: Dictionary = get_active_window()
 	if current.has("error"):
 		return
-	if _last_window.is_empty() or current.title != _last_window.get("title", ""):
+	if _last_window.is_empty() or current.get("title", "") != _last_window.get("title", ""):
 		_last_window = current
 		window_changed.emit(current)
 
