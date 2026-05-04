@@ -1,6 +1,6 @@
 # Careless Whisper — Status Report
 
-_Last updated: 2025-06-10_
+_Last updated: 2025-07-10_
 
 ## ✅ What's Working
 
@@ -30,6 +30,10 @@ _Last updated: 2025-06-10_
 - `os_control.gdextension` — `compatibility_minimum = "4.1"`, confirmed compatible with 4.6
 - Provides `WindowManager` (window enumeration) and `InputInjector` (keyboard/mouse)
 - Cross-platform: Windows (`windows` crate), macOS (`cocoa`/`core-graphics`), Linux (`xcb`)
+- **`InputInjector` confirmed working on Windows** — `type_text`, `press_key`,
+  `move_mouse`, `click_mouse` all functional via `SendInput` / `SetCursorPos`.
+  DLL rebuilt 2025-07-10 after stale binary was identified as root cause of
+  `"type_text_windows is not yet implemented"` error.
 
 ### Project Structure
 
@@ -91,9 +95,8 @@ OSController="*res://scripts/autoload/os_controller.gd"
 
 ### InputInjector Test Scene
 
-`scenes/test/input_injector_test.tscn` references `InputInjector.new()` in the old
-test script. The script has been fixed to use `ClassDB.instantiate()`, but the scene
-may need a re-import in the editor.
+`scenes/test/input_injector_test.tscn` — confirmed working after DLL rebuild.
+Script uses `ClassDB.instantiate()` correctly.
 
 ### Config Dialog
 
@@ -103,7 +106,8 @@ may need a re-import in the editor.
 ### Vim Integration (xdotool fallback)
 
 `xdotool` is Linux/X11 only. On Wayland or Windows, the `InputInjector` native path
-via `os_control` extension is required. Test on each platform.
+via `os_control` extension is required. Windows native path confirmed working;
+Linux/X11 and macOS untested.
 
 ---
 
@@ -136,6 +140,6 @@ Then:
 2. **Add OSController to autoloads** in `project.godot`
 3. **Verify resampling quality** — confirm 16kHz PCM produces clean transcriptions
 4. **Command routing** — once transcription works, exercise `CommandDispatcher` patterns
-5. **Vim integration** — test `xdotool` path on Linux/X11 and native path on Windows
+5. **Vim integration** — `InputInjector` confirmed on Windows; test `xdotool` path on Linux/X11
 6. **Build whisper_cpp for Windows** — follow `BUILD_WINDOWS.md`
 7. **CI artifact** — add GitHub Actions workflow to build and cache the `.so`/`.dll`

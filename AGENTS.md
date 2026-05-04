@@ -217,6 +217,30 @@ Or in Godot editor: open project and press F5.
 - Both use `entry_symbol = "gdext_rust_init"` (godot-rs 0.4 / gdext)
 - If neither extension is compiled, the project runs in **placeholder mode** — UI loads
   but transcription and OS control are stubbed out
+- **Stale DLL trap:** if you see `"X is not yet implemented"` from an extension that
+  has source code for that feature, the compiled DLL in `bin/` predates the code.
+  Rebuild with `cargo build --release` and copy the new DLL into `bin/<platform>/`.
+
+### `.tscn` Scene File Common Pitfalls
+
+Godot 4 `format=3` scene files have strict syntax rules:
+
+```
+# Bad — missing attributes, inline ExtResource path, wrong parent name
+[gd_scene]
+[node name="Child" instance=ExtResource(res://scenes/Foo.tscn) parent="Root"]
+
+# Good — proper header, declared ext_resource block, dot-parent
+[gd_scene load_steps=2 format=3]
+[ext_resource type="PackedScene" path="res://scenes/Foo.tscn" id="1_foo"]
+[node name="Root" type="Node"]
+[node name="Child" parent="." instance=ExtResource("1_foo")]
+```
+
+- `[gd_scene]` **must** have `load_steps=N format=3`
+- `ExtResource` must be declared as a separate `[ext_resource ...]` block and
+  referenced by quoted id string — never as an inline path
+- Direct children of the scene root use `parent="."` not `parent="RootNodeName"`
 
 ## whisper.cpp Fork
 

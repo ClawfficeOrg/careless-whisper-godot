@@ -218,5 +218,5 @@ Godot API call.
 | `cannot find -lvcruntime` | Install Visual Studio Build Tools with MSVC v143 |
 | `DLL not found at runtime` | Copy the built `.dll` to the correct `bin\windows\` folder |
 | `GetWindowRect failed` | Normal on headless/no-window sessions; not a crash |
-| `InputInjector not implemented` | `SendInput` wrappers are stubs — see `addons\os_control\src\input_injector.rs` |
+| `InputInjector not implemented` | Stale DLL — rebuild with `cargo build --release` in `addons\os_control\` and copy the DLL to `bin\windows\` |
 | `WhisperCpp` not found in ClassDB | Ensure `whisper_cpp_gdext.windows.*.dll` is in `addons\whisper_cpp\bin\` |

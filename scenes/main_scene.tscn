@@ -1,5 +1,7 @@
-[gd_scene]
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/MicMeter.tscn" id="1_micmeter"]
 
 [node name="Main" type="Node"]
 
-[node name="MicMeter" instance=ExtResource(res://scenes/ui/MicMeter.tscn) parent="Main"]
+[node name="MicMeter" parent="." instance=ExtResource("1_micmeter")]
