@@ -219,16 +219,20 @@ Behavioral notes:
 **Implementation note — Game safety (anti-cheat):**
 
 Overlays, input injection, and global hooks can be flagged by anti-cheat systems
-in online games. To reduce the risk of false positives, Careless Whisper will
-ship with an opt-in safety mechanism that is enabled by default:
+in online games. To minimize this risk, Careless Whisper will ship with an
+automatic safety mode that is enabled by default:
 
-- `OverlayController` and `ModeManager` will automatically suspend overlays, whichkey
-  HUDs, and global keyboard hooks when a game is detected.
+- When a game is detected, Careless Whisper will fully suspend itself: stop voice
+  capture and recognition, halt command parsing and dispatch, unregister global
+  keyboard hooks, disable overlays, and cease synthetic input. While suspended,
+  the application remains idle and will not interact with the game in any way.
+
 - Game detection is conservative by default: it triggers on fullscreen-exclusive
   windows and on processes matching a user-configurable known-game list.
-- When suspended, voice-command processing continues in a restricted mode (no
-  overlay draws, no synthetic input injection). Users can re-enable overlays per-game
-  in advanced settings but the default is to stay off to avoid anti-cheat flags.
+
+- Users can re-enable Careless Whisper per-game in advanced settings if they
+  understand the risk; the default is OFF (disabled) while a game is active to
+  avoid anti-cheat flags.
 
 Detection sources considered:
 - Active window fullscreen state (exclusive/fullscreen flag)
@@ -324,9 +328,9 @@ and the mode switch is PTT-driven.
   The overlay uses the accessibility API for accurate placement and falls back to OCR
   when necessary. Two-letter hints are chosen to be phonetically distinct by default
   to improve voice recognition reliability.
-- [ ] **Game-safe default** — overlay drawing and synthetic input are suspended when
-  a game is detected (see Settings Reference). This default-on safety avoids
-  triggering anti-cheat heuristics in fullscreen games.
+- [ ] **Game-safe default** — Careless Whisper fully suspends itself when a game is
+  detected (see Settings Reference). This default-on safety avoids triggering
+  anti-cheat heuristics in fullscreen games.
 
 **Deliverable:** Whichkey HUD appears when you pause. Whisbar opens on hotkey. Window
 picker overlays the screen with letter hints. Sneak overlay allows low-effort
@@ -548,7 +552,7 @@ to `DEFAULTS` now but have no active effect until the relevant version ships.
 | `overlay.font_size` | `int` | `14` | v0.3 | HUD font size |
 | `overlay.sneak_opacity` | `float` | `0.95` | v0.3 | Opacity for sneak hint labels |
 | `overlay.sneak_timeout_ms` | `int` | `4000` | v0.3 | Time before sneak overlay auto-dismisses (ms) |
-| `overlay.disable_in_games` | `bool` | `true` | v0.3 | Auto-disable overlays and synthetic input when a game is detected (default ON to avoid anti-cheat)
+| `overlay.disable_in_games` | `bool` | `true` | v0.3 | When true, Careless Whisper suspends itself completely when a game is detected (default ON to avoid anti-cheat)
 | `overlay.game_detection_mode` | `String` | `"fullscreen_or_known_process"` | v0.3 | Detection: `fullscreen` / `process` / `fullscreen_or_known_process`
 | `overlay.known_game_processes` | `String` | `""` | v0.3 | Comma-separated process names to treat as games (e.g. `csgo.exe,steam.exe`) |
 
