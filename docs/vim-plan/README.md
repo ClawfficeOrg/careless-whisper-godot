@@ -195,6 +195,48 @@ All GDScript examples in this plan use correct syntax.
 | `accessibility_reader` | Read external app UI elements via platform a11y APIs |
 | `overlay_window` | Platform overlay creation (replaces winit approach with simpler direct API) |
 
+**Implementation note — Sneak / Two-letter hinting:**
+
+The `OverlayController` will also be responsible for a "Sneak" style, two-letter
+hinting mode (Vim-sneak / link-hint inspired). This mode places small two-character
+labels adjacent to interactive UI elements discovered by the `accessibility_reader`
+or OCR fallback. Labels are chosen from a configurable charset and emitted as
+non-overlapping pairs so each interactive target has a short unique label.
+
+Input methods supported:
+- Keyboard: type the two characters sequentially (like `sneak`/`vimium` hinting).
+- Voice: speak the two characters. To improve recognition reliability, the system
+  supports a phonetic mapping (e.g. NATO alphabet or a simpler phonetic set) so
+  users can say "alpha bravo" or "A B". The default is to enable phonetic mode,
+  and use two-letter pairs to reduce homophone collisions.
+
+Behavioral notes:
+- Default action on selecting a hint is `click` (configurable per-app or per-bridge).
+- The overlay aligns labels using the accessibility element bounding boxes; for apps
+  lacking a11y trees, fall back to OCR-detected bounding boxes.
+- A short timeout (configurable) dismisses the overlay if no selection is made.
+
+**Implementation note — Game safety (anti-cheat):**
+
+Overlays, input injection, and global hooks can be flagged by anti-cheat systems
+in online games. To reduce the risk of false positives, Careless Whisper will
+ship with an opt-in safety mechanism that is enabled by default:
+
+- `OverlayController` and `ModeManager` will automatically suspend overlays, whichkey
+  HUDs, and global keyboard hooks when a game is detected.
+- Game detection is conservative by default: it triggers on fullscreen-exclusive
+  windows and on processes matching a user-configurable known-game list.
+- When suspended, voice-command processing continues in a restricted mode (no
+  overlay draws, no synthetic input injection). Users can re-enable overlays per-game
+  in advanced settings but the default is to stay off to avoid anti-cheat flags.
+
+Detection sources considered:
+- Active window fullscreen state (exclusive/fullscreen flag)
+- Known process executable names (configurable list)
+- Steam/Proton/Launcher heuristics (future)
+
+This safety mode is ON by default. See Settings Reference for configurable keys.
+
 ---
 
 ## 4. Versioned Release Plan
@@ -276,9 +318,19 @@ and the mode switch is PTT-driven.
   `overlay.hint_charset`
 - [ ] **Whisbar** (Vomnibar) — searchable floating command palette, voice or keyboard
   triggered; shows all available commands for current app context
+- [ ] **Sneak overlay** — two-letter hinting mode (Vim-sneak inspired). Places a two-character
+  overlay adjacent to interactive UI elements (buttons, links, fields). Users can
+  activate a target by saying the two letters (voice) or typing them (keyboard).
+  The overlay uses the accessibility API for accurate placement and falls back to OCR
+  when necessary. Two-letter hints are chosen to be phonetically distinct by default
+  to improve voice recognition reliability.
+- [ ] **Game-safe default** — overlay drawing and synthetic input are suspended when
+  a game is detected (see Settings Reference). This default-on safety avoids
+  triggering anti-cheat heuristics in fullscreen games.
 
 **Deliverable:** Whichkey HUD appears when you pause. Whisbar opens on hotkey. Window
-picker overlays the screen with letter hints.
+picker overlays the screen with letter hints. Sneak overlay allows low-effort
+selection of UI elements via short two-letter labels.
 
 **Platform targets:** Windows, macOS, Linux X11, Linux Wayland (KDE/Sway)
 **Known gap:** GNOME Wayland overlay is window-fallback only (documented)
@@ -476,6 +528,12 @@ to `DEFAULTS` now but have no active effect until the relevant version ships.
 | `command.universal_cut` | `String` | `"Control+x"` | v0.1 | Chord for "cut" command |
 | `command.universal_close` | `String` | `"Control+w"` | v0.1 | Chord for "close" command |
 | `command.vim_scroll_lines` | `int` | `3` | v0.1 | Lines scrolled per "scroll down/up" |
+| `command.sneak_enabled` | `bool` | `true` | v0.3 | Enable Sneak two-letter hint mode for command selection |
+| `command.sneak_hint_length` | `int` | `2` | v0.3 | Number of characters per hint label (2 recommended for voice)
+| `command.sneak_hint_charset` | `String` | `"asdfjkl;"` | v0.3 | Characters used to generate hint pairs; choose phonetic-friendly chars |
+| `command.sneak_phonetic_mode` | `bool` | `true` | v0.3 | Map letters to a phonetic alphabet for clearer voice input (NATO or custom)
+| `command.sneak_voice_prefix` | `String` | `""` | v0.3 | Optional spoken prefix to enter sneak mode (e.g. "hint")
+| `command.sneak_default_action` | `String` | `"click"` | v0.3 | Action taken when hint selected: `click` / `focus` / `activate` |
 
 ### Overlay Settings (`overlay.*`)
 
@@ -488,6 +546,11 @@ to `DEFAULTS` now but have no active effect until the relevant version ships.
 | `overlay.hint_charset` | `String` | `"asdfjkl;"` | v0.3 | Characters for window/link hints |
 | `overlay.whisbar_hotkey` | `String` | `"Super+Space"` | v0.3 | Whisbar (Vomnibar) open key |
 | `overlay.font_size` | `int` | `14` | v0.3 | HUD font size |
+| `overlay.sneak_opacity` | `float` | `0.95` | v0.3 | Opacity for sneak hint labels |
+| `overlay.sneak_timeout_ms` | `int` | `4000` | v0.3 | Time before sneak overlay auto-dismisses (ms) |
+| `overlay.disable_in_games` | `bool` | `true` | v0.3 | Auto-disable overlays and synthetic input when a game is detected (default ON to avoid anti-cheat)
+| `overlay.game_detection_mode` | `String` | `"fullscreen_or_known_process"` | v0.3 | Detection: `fullscreen` / `process` / `fullscreen_or_known_process`
+| `overlay.known_game_processes` | `String` | `""` | v0.3 | Comma-separated process names to treat as games (e.g. `csgo.exe,steam.exe`) |
 
 ### Window Management (`windows.*`)
 
@@ -591,3 +654,8 @@ to `DEFAULTS` now but have no active effect until the relevant version ships.
    sees the key, so CapsLock never types a capital letter into the active app.
    This is achievable on Windows (SetWindowsHookEx) and X11 (XGrabKey) but
    not on macOS without Accessibility permission.
+
+9. **Game detection accuracy and policy** — How aggressive should the default game
+   detection be? Conservative defaults are recommended (fullscreen + known process
+   list) to minimize false positives that could disable overlays unintentionally.
+
