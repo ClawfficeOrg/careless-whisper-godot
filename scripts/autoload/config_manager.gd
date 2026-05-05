@@ -9,17 +9,90 @@ const CONFIG_PATH := "user://config.cfg"
 var _data: Dictionary = {}
 
 ## Defaults — applied when a key is not present in the saved config.
+## Keys marked [placeholder] have no active effect yet — see docs/vim-plan/README.md
+## for the versioned release plan that will implement them.
 const DEFAULTS: Dictionary = {
+	# --- Whisper / transcription ---
 	"whisper.model": "base.en",
 	"whisper.language": "en",
 	"whisper.threads": 4,
 	"whisper.temperature": 0.0,
 	"whisper.beam_size": 5,
+
+	# --- Audio ---
 	"audio.input_device": "",
 	"audio.vad_threshold": 0.01,
 	"audio.silence_timeout_ms": 1500,
+
+	# --- Legacy input/output ---
 	"input.mode": "push_to_talk",
 	"output.default_route": "clipboard",
+
+	# --- v0.1: Modal voice mode & PTT ---
+	"mode.current": "insert",
+	"mode.ptt_key_insert": "CapsLock",
+	"mode.ptt_key_command": "Super+CapsLock",
+	"mode.ptt_key_visual": "",
+	"mode.insert_paste_on_release": false,
+	"mode.auto_detect_text_focus": true,
+
+	# --- v0.1: Command mode verbs ---
+	"command.prefix": "",
+	"command.universal_copy": "Control+c",
+	"command.universal_paste": "Control+v",
+	"command.universal_cut": "Control+x",
+	"command.universal_close": "Control+w",
+	"command.vim_scroll_lines": 3,
+
+	# --- v0.2: Window management & OS hotkey ---
+	"mode.command_hotkey": "Super+CapsLock",
+	"windows.list_all_enabled": true,
+	"windows.fuzzy_match_threshold": 0.6,
+	"windows.exclude_patterns": "",
+
+	# --- v0.3: Overlay system [placeholder] ---
+	"overlay.whichkey_enabled": true,
+	"overlay.whichkey_delay_ms": 800,
+	"overlay.opacity": 0.85,
+	"overlay.position": "bottom-right",
+	"overlay.hint_charset": "asdfjkl;",
+	"overlay.whisbar_hotkey": "Super+Space",
+	"overlay.font_size": 14,
+
+	# --- v0.4: App bridges [placeholder] ---
+	"bridge.browser.cdp_port": 9222,
+	"bridge.browser.protocol": "cdp",
+	"bridge.browser.firefox_port": 4444,
+	"bridge.vscode.enabled": true,
+	"bridge.vscode.binary_path": "code",
+	"bridge.vscode.use_lsp": false,
+
+	# --- v0.5: Accessibility reader [placeholder] ---
+	"accessibility.enabled": true,
+	"accessibility.ocr_fallback": false,
+	"accessibility.click_highlight_ms": 300,
+
+	# --- v0.6: macOS permissions [placeholder] ---
+	"macos.request_accessibility_on_start": true,
+	"macos.request_screen_recording_on_start": true,
+
+	# --- v0.7: BYOK AI intent resolution [placeholder] ---
+	# NOTE: ai.api_key is intentionally omitted — store in OS keychain only.
+	"ai.enabled": false,
+	"ai.backend": "openai",
+	"ai.endpoint_url": "",
+	"ai.model": "gpt-4o-mini",
+	"ai.intent_threshold": 0.7,
+	"ai.system_prompt": "",
+
+	# --- v0.8: MCP command sources [placeholder] ---
+	"mcp.enabled": false,
+	"mcp.servers": "",
+
+	# --- v0.9: OCR fallback [placeholder] ---
+	"ocr.enabled": false,
+	"ocr.language": "eng",
+	"ocr.confidence_threshold": 0.75,
 }
 
 
