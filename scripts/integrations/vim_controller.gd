@@ -36,7 +36,7 @@ func _ready() -> void:
 func set_whisper_node(node: Node) -> void:
 	_whisper_node = node
 	if debug_output:
-		print("[VimController] WhisperNode set, native input available: %s" % _has_native_input())
+		push_warning("[VimController] WhisperNode set, native input available: %s" % _has_native_input())
 
 
 # ---------------------------------------------------------------------------
@@ -73,14 +73,14 @@ func _vim_insert_mode() -> void:
 	# In vim, pressing 'i' enters insert mode
 	_press_key("i")
 	if debug_output:
-		print("[VimController] Switched to insert mode")
+		push_warning("[VimController] Switched to insert mode")
 
 
 func _vim_normal_mode() -> void:
 	# In vim, pressing Escape enters normal mode
 	_press_key("Escape")
 	if debug_output:
-		print("[VimController] Switched to normal mode")
+		push_warning("[VimController] Switched to normal mode")
 
 
 # ---------------------------------------------------------------------------
@@ -102,13 +102,13 @@ func _type_text(text: String) -> void:
 		# Use cross-platform native input (enigo)
 		var success: bool = _whisper_node.type_text(text)
 		if debug_output:
-			print("[VimController] native type '%s' -> %s" % [text, success])
+			push_warning("[VimController] native type '%s' -> %s" % [text, success])
 	else:
 		# Fallback to xdotool (Linux only)
 		var output: Array[String] = []
 		var exit_code: int = OS.execute(xdotool_path, ["type", "--", text], output, true)
 		if debug_output:
-			print("[VimController] xdotool type '%s' -> exit code %d" % [text, exit_code])
+			push_warning("[VimController] xdotool type '%s' -> exit code %d" % [text, exit_code])
 
 
 ## Press a key using native method or xdotool fallback.
@@ -120,13 +120,13 @@ func _press_key(key: String) -> void:
 		# Use cross-platform native input (enigo)
 		var success: bool = _whisper_node.press_key(key)
 		if debug_output:
-			print("[VimController] native key '%s' -> %s" % [key, success])
+			push_warning("[VimController] native key '%s' -> %s" % [key, success])
 	else:
 		# Fallback to xdotool (Linux only)
 		var output: Array[String] = []
 		var exit_code: int = OS.execute(xdotool_path, ["key", key], output, true)
 		if debug_output:
-			print("[VimController] xdotool key '%s' -> exit code %d" % [key, exit_code])
+			push_warning("[VimController] xdotool key '%s' -> exit code %d" % [key, exit_code])
 
 
 # ---------------------------------------------------------------------------
@@ -138,14 +138,14 @@ func _press_key(key: String) -> void:
 func enable() -> void:
 	enabled = true
 	if debug_output:
-		print("[VimController] Enabled (native: %s)" % _has_native_input())
+		push_warning("[VimController] Enabled (native: %s)" % _has_native_input())
 
 
 ## Disable vim integration.
 func disable() -> void:
 	enabled = false
 	if debug_output:
-		print("[VimController] Disabled")
+		push_warning("[VimController] Disabled")
 
 
 ## Toggle vim integration.

@@ -69,8 +69,8 @@ func _connect_signals() -> void:
 	browse_button.pressed.connect(_on_browse)
 	load_button.pressed.connect(_on_load_model)
 	close_button.pressed.connect(hide)
-	language_edit.text_changed.connect(func(t): ConfigManager.set_value("whisper.language", t))
-	threads_spin.value_changed.connect(func(v): ConfigManager.set_value("whisper.threads", int(v)))
+	language_edit.text_changed.connect(func(t: String) -> void: ConfigManager.set_value("whisper.language", t))
+	threads_spin.value_changed.connect(func(v: float) -> void: ConfigManager.set_value("whisper.threads", int(v)))
 	mic_option.item_selected.connect(_on_mic_selected)
 	close_requested.connect(hide)
 
@@ -87,7 +87,7 @@ func _on_mic_selected(index: int) -> void:
 	var device := mic_option.get_item_text(index)
 	AudioServer.set_input_device(device)
 	ConfigManager.set_value("audio.input_device", device)
-	print("[Config] Mic input set to: %s" % device)
+	push_warning("[Config] Mic input set to: %s" % device)
 
 
 func _on_model_browser_load(path: String) -> void:
@@ -101,7 +101,7 @@ func _on_browse() -> void:
 	dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	dialog.filters = PackedStringArray(["*.bin ; GGML model files"])
 	dialog.access = FileDialog.ACCESS_FILESYSTEM
-	dialog.file_selected.connect(func(path: String):
+	dialog.file_selected.connect(func(path: String) -> void:
 		model_path_edit.text = path
 		dialog.queue_free()
 	)

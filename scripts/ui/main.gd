@@ -56,7 +56,7 @@ func _detect_whisper_extension() -> void:
 	# ClassDB.class_exists is the safe way to check for optional extensions.
 	if ClassDB.class_exists("WhisperCpp"):
 		_whisper_available = true
-		print_rich("[color=green][WhisperCpp] GDExtension loaded[/color]")
+		push_warning("[main] WhisperCpp GDExtension loaded")
 	else:
 		_whisper_available = false
 		push_warning("[main] WhisperCpp GDExtension not available — running in placeholder mode")
@@ -96,9 +96,15 @@ func _connect_signals() -> void:
 	SignalBus.transcription_error.connect(_on_transcription_error)
 
 	if _whisper_available and whisper != null:
-		whisper.transcription_complete.connect(SignalBus.transcription_completed.emit)
-		whisper.transcription_error.connect(SignalBus.transcription_error.emit)
-		whisper.model_loaded.connect(func(path): SignalBus.model_ready.emit(path.get_file()))
+		whisper.transcription_complete.connect(func(text: String) -> void:
+			SignalBus.transcription_completed.emit(text)
+		)
+		whisper.transcription_error.connect(func(msg: String) -> void:
+			SignalBus.transcription_error.emit(msg)
+		)
+		whisper.model_loaded.connect(func(path: String) -> void:
+			SignalBus.model_ready.emit(path.get_file())
+		)
 
 	# Wire config dialog with the whisper node so it can load models
 	config_dialog.set_whisper_node(whisper)

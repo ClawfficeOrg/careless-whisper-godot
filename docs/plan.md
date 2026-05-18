@@ -11,7 +11,7 @@ Completed tasks are marked `[x]` automatically by Ralph after each successful co
 
 ---
 
-- [ ] `task-1`: Wire OSController autoload in project.godot
+- [x] `task-1`: Wire OSController autoload in project.godot
 - [x] `task-2`: Implement focus_window in os_controller.gd via InputInjector
 - [ ] `task-3`: Write InputInjector integration test scene and script
 - [ ] `task-4`: Expand settings dialog — hotkeys tab, startup behavior, theme selector

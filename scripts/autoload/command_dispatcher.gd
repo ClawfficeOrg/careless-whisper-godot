@@ -108,7 +108,7 @@ func parse(text: String) -> bool:
 ## Emit a command with normalized arguments.
 func emit_command(command_name: String, args: Dictionary) -> void:
 	command_executed.emit(command_name, args)
-	print("[CommandDispatcher] Dispatched: %s %s" % [command_name, args])
+	push_warning("[CommandDispatcher] Dispatched: %s %s" % [command_name, args])
 
 
 # ---------------------------------------------------------------------------
