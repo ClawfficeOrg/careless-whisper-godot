@@ -1,0 +1,34 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/input_injector_integration.gd" id="1_integration"]
+
+[node name="InputInjectorIntegration" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_integration")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 24
+offset_top = 24
+offset_right = 780
+
+[node name="TitleLabel" type="Label" parent="VBox"]
+text = "InputInjector Integration Test"
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+text = "Initialising..."
+
+[node name="HBox" type="HBoxContainer" parent="VBox"]
+
+[node name="RunAutoTestBtn" type="Button" parent="VBox/HBox"]
+text = "Run Auto-Test"
+
+[node name="InjectKeyBtn" type="Button" parent="VBox/HBox"]
+text = "Inject Key (Ctrl+A)"
+
+[node name="InjectClickBtn" type="Button" parent="VBox/HBox"]
+text = "Inject Click (Left)"
+
+[node name="ResultLabel" type="Label" parent="VBox"]
+text = "Results will appear here."
+autowrap_mode = 3

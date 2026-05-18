@@ -194,7 +194,7 @@ impl InputInjector {
                 "escape" | "esc" => Some(0x1B),
                 "tab" => Some(0x09),
                 "space" => Some(0x20),
-                k if k.len() == 1 => Some(k.chars().next().unwrap() as u16),
+                k if k.len() == 1 => k.chars().next().map(|c| c as u16),
                 _ => None,
             }
         }
@@ -323,26 +323,26 @@ impl InputInjector {
 impl InputInjector {
     fn type_text_macos(&self, text: &str) -> bool {
         // TODO: Implement using CGEvent
-        godot_print!("Typing text (macOS): {}", text);
-        true
+        godot_error!("Typing text (macOS) not implemented");
+        false
     }
 
     fn press_key_macos(&self, keys: &[&str]) -> bool {
         // TODO: Implement using CGEvent
-        godot_print!("Pressing keys (macOS): {:?}", keys);
-        true
+        godot_error!("Pressing keys (macOS) not implemented");
+        false
     }
 
     fn move_mouse_macos(&self, x: i32, y: i32) -> bool {
         // TODO: Implement using CGEvent
-        godot_print!("Moving mouse (macOS): ({}, {})", x, y);
-        true
+        godot_error!("Moving mouse (macOS) not implemented");
+        false
     }
 
     fn click_mouse_macos(&self, button: &str) -> bool {
         // TODO: Implement using CGEvent
-        godot_print!("Clicking mouse (macOS): {}", button);
-        true
+        godot_error!("Clicking mouse (macOS) not implemented");
+        false
     }
 }
 
@@ -351,25 +351,25 @@ impl InputInjector {
 impl InputInjector {
     fn type_text_linux(&self, text: &str) -> bool {
         // TODO: Implement using XTest extension
-        godot_print!("Typing text (Linux): {}", text);
-        true
+        godot_error!("Typing text (Linux) not implemented");
+        false
     }
 
     fn press_key_linux(&self, keys: &[&str]) -> bool {
         // TODO: Implement using XTest extension
-        godot_print!("Pressing keys (Linux): {:?}", keys);
-        true
+        godot_error!("Pressing keys (Linux) not implemented");
+        false
     }
 
     fn move_mouse_linux(&self, x: i32, y: i32) -> bool {
         // TODO: Implement using XTest extension
-        godot_print!("Moving mouse (Linux): ({}, {})", x, y);
-        true
+        godot_error!("Moving mouse (Linux) not implemented");
+        false
     }
 
     fn click_mouse_linux(&self, button: &str) -> bool {
         // TODO: Implement using XTest extension
-        godot_print!("Clicking mouse (Linux): {}", button);
-        true
+        godot_error!("Clicking mouse (Linux) not implemented");
+        false
     }
 }
