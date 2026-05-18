@@ -16,8 +16,18 @@ var input_injector: Object = null
 signal command_executed(command: String, success: bool)
 signal window_changed(window_info: Dictionary)
 signal focus_window_result(success: bool, message: String)
+## Emitted when the list of audio input devices changes.
+signal device_list_changed(devices: Array)
+## Emitted when the OS default audio input device changes.
+signal default_device_changed(device_id: String)
+
+## Seconds between audio-device list polls.
+const DEVICE_POLL_INTERVAL: float = 2.0
 
 var _last_window: Dictionary = {}
+var _last_input_devices: Array[String] = []
+var _last_default_input: String = ""
+var _device_poll_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -35,8 +45,13 @@ func _ready() -> void:
 	_check_active_window()
 
 
-func _process(_delta: float) -> void:
+
+func _process(delta: float) -> void:
 	_check_active_window()
+	_device_poll_timer -= delta
+	if _device_poll_timer <= 0.0:
+		_device_poll_timer = DEVICE_POLL_INTERVAL
+		_check_devices()
 
 
 ## Get current active window information.
@@ -180,6 +195,48 @@ func _check_active_window() -> void:
 	if _last_window.is_empty() or current.get("title", "") != _last_window.get("title", ""):
 		_last_window = current
 		window_changed.emit(current)
+
+
+## Poll audio input devices for changes and emit signals when they occur.
+
+func _check_devices() -> void:
+	var devices: Array[String] = get_input_devices()
+	if _input_devices_changed(devices):
+		_last_input_devices = devices
+		var as_array: Array = []
+		for d: String in devices:
+			as_array.append(d)
+		device_list_changed.emit(as_array)
+
+	var current_default: String = get_default_input_device()
+	if current_default != _last_default_input:
+		_last_default_input = current_default
+		default_device_changed.emit(current_default)
+
+
+## Return all available audio input device names.
+
+func get_input_devices() -> Array[String]:
+	var raw: PackedStringArray = AudioServer.get_input_device_list()
+	var result: Array[String] = []
+	for d: String in raw:
+		result.append(d)
+	return result
+
+
+## Return the current default audio input device name.
+
+func get_default_input_device() -> String:
+	return AudioServer.input_device
+
+
+func _input_devices_changed(new_devices: Array[String]) -> bool:
+	if new_devices.size() != _last_input_devices.size():
+		return true
+	for i: int in range(new_devices.size()):
+		if new_devices[i] != _last_input_devices[i]:
+			return true
+	return false
 
 
 func _switch_to_insert_mode() -> bool:

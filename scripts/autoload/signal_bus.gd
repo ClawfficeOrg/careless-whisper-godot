@@ -63,6 +63,20 @@ signal streamdeck_action_executed(action_id: String, result: Dictionary)
 signal streamdeck_notification(message: String)
 
 # ---------------------------------------------------------------------------
+# Mic hot-swap (task-11)
+# ---------------------------------------------------------------------------
+## Emitted by MicManager when the active input device disappears.
+signal mic_device_disconnected(device_id: String)
+## Emitted by MicManager when the previously lost device is detected again.
+signal mic_device_reconnected(device_id: String)
+## Emitted by MicManager periodically during reconnect (0.0–100.0).
+signal mic_reconnect_progress(percent: float)
+## Emitted by MicManager and OSController when the input device list changes.
+signal mic_device_list_changed(devices: Array)
+## Emitted by MicManager when its internal state machine transitions.
+signal mic_state_changed(state: String)
+
+# ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------
 signal app_quitting()

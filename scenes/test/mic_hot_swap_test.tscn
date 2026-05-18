@@ -1,0 +1,64 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/mic_hot_swap_test.gd" id="1_test"]
+
+[node name="MicHotSwapTest" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_test")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 24
+offset_top = 24
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="VBox"]
+text = "Mic Hot-Swap Test"
+theme_override_font_sizes/font_size = 18
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+text = "Checking MicManager autoload..."
+
+[node name="StateLabel" type="Label" parent="VBox"]
+text = "State: —"
+
+[node name="DeviceLabel" type="Label" parent="VBox"]
+text = "Device: —"
+
+[node name="DeviceListLabel" type="Label" parent="VBox"]
+text = "Devices: —"
+autowrap_mode = 2
+custom_minimum_size = Vector2(400, 0)
+
+[node name="ButtonRow" type="HBoxContainer" parent="VBox"]
+theme_override_constants/separation = 8
+
+[node name="DisconnectBtn" type="Button" parent="VBox/ButtonRow"]
+text = "Simulate Disconnect"
+tooltip_text = "Moves MicManager to RECONNECTING state (requires ACTIVE)"
+
+[node name="ReconnectBtn" type="Button" parent="VBox/ButtonRow"]
+text = "Simulate Reconnect"
+tooltip_text = "Moves MicManager to ACTIVE state (requires RECONNECTING/DISCONNECTED)"
+
+[node name="PollBtn" type="Button" parent="VBox/ButtonRow"]
+text = "Force Poll"
+tooltip_text = "Immediately refresh device list"
+
+[node name="ListDevicesBtn" type="Button" parent="VBox/ButtonRow"]
+text = "List Devices"
+tooltip_text = "Refresh device info display"
+
+[node name="HintLabel" type="Label" parent="VBox"]
+text = "Manual test: Start recording first (in main scene) to put MicManager in ACTIVE state,\nthen use Simulate Disconnect / Reconnect to exercise the reconnect flow."
+autowrap_mode = 2
+custom_minimum_size = Vector2(400, 0)
+theme_override_font_sizes/font_size = 11
+
+[node name="EventLogTitle" type="Label" parent="VBox"]
+text = "Event log:"
+
+[node name="EventLog" type="Label" parent="VBox"]
+text = ""
+custom_minimum_size = Vector2(400, 120)
+theme_override_font_sizes/font_size = 11

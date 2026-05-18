@@ -1,18 +1,44 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource path="res://scripts/ui/MicMeter.gd" type="Script" id=1]
+[ext_resource type="Script" path="res://scripts/ui/MicMeter.gd" id="1_micmeter"]
 
 [node name="MicMeter" type="Control"]
-anchor_left = 0.1
-anchor_top = 0.05
-anchor_right = 0.9
-anchor_bottom = 0.1
+script = ExtResource("1_micmeter")
 
-[node name="ProgressBar" type="ProgressBar" parent="."]
-anchor_left = 0.0
-anchor_top = 0.0
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="DeviceRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="DeviceLabel" type="Label" parent="VBox/DeviceRow"]
+layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+text = "Device: Default"
+theme_override_font_sizes/font_size = 11
+
+[node name="StatusLabel" type="Label" parent="VBox/DeviceRow"]
+layout_mode = 2
+text = "● IDLE"
+theme_override_font_sizes/font_size = 11
+
+[node name="ProgressBar" type="ProgressBar" parent="VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 8)
 value = 0
+show_percentage = false
+
+[node name="ReconnectBar" type="ProgressBar" parent="VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 4)
+value = 0
+show_percentage = false
+visible = false
