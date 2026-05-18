@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Careless Whisper — Action Settings</title>
+  <style>
+    /* Stream Deck property inspectors render inside a small iframe (~320 px wide).
+       Use the Elgato-provided sdpi.css for consistent look-and-feel when available;
+       this minimal reset works without it. */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #2d2d2d;
+      color: #c8c8c8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      padding: 8px;
+    }
+
+    .sdpi-wrapper { display: flex; flex-direction: column; gap: 8px; }
+
+    .sdpi-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #888;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    select {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      border-radius: 3px;
+      color: #e0e0e0;
+      font-size: 12px;
+      padding: 4px 6px;
+      outline: none;
+    }
+
+    input:focus, select:focus { border-color: #6ca0dc; }
+
+    .sdpi-item-group { display: none; }
+    .sdpi-item-group.visible { display: flex; flex-direction: column; gap: 8px; }
+
+    hr { border: none; border-top: 1px solid #3a3a3a; margin: 4px 0; }
+
+    small { color: #666; font-size: 10px; }
+  </style>
+</head>
+<body>
+  <div class="sdpi-wrapper">
+
+    <!-- Connection settings (shared across all action types) -->
+    <div class="sdpi-item">
+      <label for="host">Host</label>
+      <input type="text" id="host" placeholder="127.0.0.1" maxlength="64" />
+    </div>
+
+    <div class="sdpi-item">
+      <label for="port">Port</label>
+      <input type="number" id="port" placeholder="12138" min="1" max="65535" />
+    </div>
+
+    <div class="sdpi-item">
+      <label for="secret">Shared Secret <small>(optional)</small></label>
+      <input type="password" id="secret" placeholder="leave blank if unused" maxlength="128" />
+    </div>
+
+    <hr />
+
+    <!-- Load Model — shown only for that action UUID -->
+    <div class="sdpi-item-group" id="group-model">
+      <div class="sdpi-item">
+        <label for="model">Model Name</label>
+        <select id="model">
+          <option value="tiny.en">tiny.en</option>
+          <option value="tiny">tiny</option>
+          <option value="base.en">base.en</option>
+          <option value="base">base</option>
+          <option value="small.en">small.en</option>
+          <option value="small">small</option>
+          <option value="medium.en">medium.en</option>
+          <option value="medium">medium</option>
+          <option value="large-v3">large-v3</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Notify — shown only for that action UUID -->
+    <div class="sdpi-item-group" id="group-message">
+      <div class="sdpi-item">
+        <label for="message">Message</label>
+        <input type="text" id="message" placeholder="Notification text" maxlength="256" />
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /**
+     * Minimal Stream Deck property inspector glue.
+     *
+     * The Stream Deck software injects `connectElgatoStreamDeckSocket` as a
+     * global function before loading this page. We implement it to receive and
+     * persist per-action settings.
+     */
+
+    let _sdPort, _uuid, _actionInfo, _websocket;
+    let _actionUUID = "";
+
+    /** Retrieve stored settings and populate the form fields. */
+    function populateForm(settings) {
+      document.getElementById("host").value    = settings.host    || "";
+      document.getElementById("port").value    = settings.port    || "";
+      document.getElementById("secret").value  = settings.secret  || "";
+      document.getElementById("model").value   = settings.model   || "tiny.en";
+      document.getElementById("message").value = settings.message || "";
+    }
+
+    /** Read all form fields and return a plain-object settings payload. */
+    function collectSettings() {
+      return {
+        host:    document.getElementById("host").value.trim(),
+        port:    parseInt(document.getElementById("port").value, 10) || 12138,
+        secret:  document.getElementById("secret").value,
+        model:   document.getElementById("model").value,
+        message: document.getElementById("message").value,
+      };
+    }
+
+    /** Show action-specific field groups. */
+    function showGroupsForAction(uuid) {
+      document.getElementById("group-model").classList.toggle(
+        "visible", uuid === "com.clawffice.carelesswhisper.loadmodel"
+      );
+      document.getElementById("group-message").classList.toggle(
+        "visible", uuid === "com.clawffice.carelesswhisper.notify"
+      );
+    }
+
+    /** Send updated settings to the Stream Deck software. */
+    function sendSettings() {
+      if (!_websocket || _websocket.readyState !== WebSocket.OPEN) return;
+      _websocket.send(JSON.stringify({
+        event:   "setSettings",
+        context: _uuid,
+        payload: collectSettings(),
+      }));
+    }
+
+    // Debounce form input so we don't spam the WebSocket on every keypress.
+    let _debounceTimer = null;
+    function onInputChange() {
+      clearTimeout(_debounceTimer);
+      _debounceTimer = setTimeout(sendSettings, 300);
+    }
+
+    ["host", "port", "secret", "model", "message"].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener("input",  onInputChange);
+      el.addEventListener("change", onInputChange);
+    });
+
+    // eslint-disable-next-line no-unused-vars
+    function connectElgatoStreamDeckSocket(port, uuid, msgType, actionInfo) {
+      _sdPort     = port;
+      _uuid       = uuid;
+      _actionInfo = JSON.parse(actionInfo);
+      _actionUUID = _actionInfo.action || "";
+
+      showGroupsForAction(_actionUUID);
+
+      if (_actionInfo.payload && _actionInfo.payload.settings) {
+        populateForm(_actionInfo.payload.settings);
+      }
+
+      _websocket = new WebSocket("ws://127.0.0.1:" + port);
+
+      _websocket.onopen = () => {
+        _websocket.send(JSON.stringify({ event: msgType, uuid: uuid }));
+      };
+
+      _websocket.onmessage = (evt) => {
+        const data = JSON.parse(evt.data);
+        if (data.event === "didReceiveSettings" && data.payload && data.payload.settings) {
+          populateForm(data.payload.settings);
+        }
+      };
+    }
+  </script>
+</body>
+</html>

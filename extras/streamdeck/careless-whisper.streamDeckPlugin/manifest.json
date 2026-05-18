@@ -1,0 +1,76 @@
+{
+  "Name": "Careless Whisper",
+  "Version": "0.1.0",
+  "Author": "ClawfficeOrg",
+  "Description": "Control Careless Whisper speech-recognition from your Stream Deck. Start/stop recording, toggle mute, load models, and send custom notifications via HTTP to the Godot app running on localhost.",
+  "Category": "Productivity",
+  "CategoryIcon": "assets/category-icon",
+  "CodePath": "plugin.js",
+  "Icon": "assets/icon",
+  "URL": "https://github.com/ClawfficeOrg/careless-whisper-godot",
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "6.0"
+  },
+  "OS": [
+    { "Platform": "windows", "MinimumVersion": "10" },
+    { "Platform": "mac", "MinimumVersion": "10.15" }
+  ],
+  "Actions": [
+    {
+      "Name": "Start Recording",
+      "UUID": "com.clawffice.carelesswhisper.startrecording",
+      "Icon": "assets/icon",
+      "Tooltip": "Begin microphone capture and transcription.",
+      "SupportedInMultiActions": true,
+      "States": [
+        { "Image": "assets/icon", "Title": "Start\nRec" }
+      ],
+      "PropertyInspectorPath": "propertyinspector/index.html"
+    },
+    {
+      "Name": "Stop Recording",
+      "UUID": "com.clawffice.carelesswhisper.stoprecording",
+      "Icon": "assets/icon",
+      "Tooltip": "Stop microphone capture.",
+      "SupportedInMultiActions": true,
+      "States": [
+        { "Image": "assets/icon", "Title": "Stop\nRec" }
+      ],
+      "PropertyInspectorPath": "propertyinspector/index.html"
+    },
+    {
+      "Name": "Toggle Mute",
+      "UUID": "com.clawffice.carelesswhisper.togglemute",
+      "Icon": "assets/icon",
+      "Tooltip": "Toggle microphone mute state.",
+      "SupportedInMultiActions": true,
+      "States": [
+        { "Image": "assets/icon", "Title": "Mute" }
+      ],
+      "PropertyInspectorPath": "propertyinspector/index.html"
+    },
+    {
+      "Name": "Load Model",
+      "UUID": "com.clawffice.carelesswhisper.loadmodel",
+      "Icon": "assets/icon",
+      "Tooltip": "Trigger a whisper.cpp model download or load.",
+      "SupportedInMultiActions": true,
+      "States": [
+        { "Image": "assets/icon", "Title": "Load\nModel" }
+      ],
+      "PropertyInspectorPath": "propertyinspector/index.html"
+    },
+    {
+      "Name": "Notify",
+      "UUID": "com.clawffice.carelesswhisper.notify",
+      "Icon": "assets/icon",
+      "Tooltip": "Send a custom notification message to the Godot app.",
+      "SupportedInMultiActions": true,
+      "States": [
+        { "Image": "assets/icon", "Title": "Notify" }
+      ],
+      "PropertyInspectorPath": "propertyinspector/index.html"
+    }
+  ]
+}

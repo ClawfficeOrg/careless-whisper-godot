@@ -19,7 +19,7 @@ Completed tasks are marked `[x]` automatically by Ralph after each successful co
 - [x] `task-6`: MacroManager autoload with three sample voice-triggered macros
 - [x] `task-7`: CommandDispatcher — expand patterns for macro triggers and window commands
 - [x] `task-8`: StreamDeck HTTP integration — tiny HTTP server and five sample action handlers
-- [ ] `task-9`: StreamDeck plugin — companion .streamDeckPlugin scaffold with manifest
+- [x] `task-9`: StreamDeck plugin — companion .streamDeckPlugin scaffold with manifest
 - [ ] `task-10`: End-to-end transcription test scene (headless-capable)
 - [ ] `task-11`: Mic device hot-swap support — device change detection and reconnect
 - [ ] `task-12`: Output history panel — scrollable list of past transcriptions with timestamps

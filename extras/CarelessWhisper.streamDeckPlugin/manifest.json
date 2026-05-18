@@ -1,0 +1,25 @@
+{
+  "Author": "Clawffice",
+  "Name": "Careless Whisper",
+  "Description": "StreamDeck companion for Careless Whisper — sends HTTP actions to the app",
+  "Version": "1.0.0",
+  "SDKVersion": 2,
+  "URL": "https://github.com/ClawfficeOrg/careless-whisper-godot",
+  "Actions": [
+    {
+      "Name": "Trigger Careless Whisper",
+      "UUID": "com.clawffice.carelesswhisper.action",
+      "Icon": "images/actionIcon",
+      "Tooltip": "Send an action to Careless Whisper",
+      "States": [
+        {
+          "Image": "images/defaultImage",
+          "Title": "CW",
+          "State": 0
+        }
+      ],
+      "PropertyInspectorPath": "propertyinspector.html"
+    }
+  ],
+  "Category": "Plugin"
+}
