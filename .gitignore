@@ -46,6 +46,9 @@ models/*.bin
 addons/*/bin/
 addons/*/target/
 
+# Ralph agent logs (full transcripts are large; only .gitkeep and STOP.md are tracked)
+ralph/logs/
+
 # Editor / OS files
 .vscode/
 .idea/

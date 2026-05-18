@@ -1,0 +1,11 @@
+# ralph/ directory
+#
+# This directory holds Ralph's runtime files.
+#
+#   ralph/logs/      — session logs (gitignored — see .gitignore)
+#   ralph/STOP.md    — drop this file to request a graceful stop (NOT gitignored)
+#
+# To stop a running Ralph session:
+#   touch ralph/STOP.md
+# or:
+#   kill -TERM $(cat /tmp/ralph-careless.pid)
