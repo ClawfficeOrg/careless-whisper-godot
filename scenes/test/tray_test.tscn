@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/tray_test.gd" id="1_tray_test"]
+
+[node name="TrayTest" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_tray_test")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+text = "Checking TrayManager…"
+
+[node name="AvailableLabel" type="Label" parent="VBox"]
+text = "Native tray: —"
+
+[node name="ShowBtn" type="Button" parent="VBox"]
+text = "Show Tray Icon"
+
+[node name="HideBtn" type="Button" parent="VBox"]
+text = "Hide Tray Icon"
+
+[node name="OpenMenuBtn" type="Button" parent="VBox"]
+text = "Simulate 'open' menu selection"
+
+[node name="SettingsMenuBtn" type="Button" parent="VBox"]
+text = "Simulate 'settings' menu selection"
+
+[node name="LastEventLabel" type="Label" parent="VBox"]
+text = "Last event: —"
