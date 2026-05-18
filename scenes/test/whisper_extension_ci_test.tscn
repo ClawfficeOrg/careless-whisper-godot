@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/whisper_extension_ci_test.gd" id="1_citest"]
+
+[node name="WhisperExtensionCITest" type="Node"]
+script = ExtResource("1_citest")
