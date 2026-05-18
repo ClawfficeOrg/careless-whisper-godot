@@ -1,0 +1,43 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/model_browser.gd" id="1_mb"]
+
+[node name="ModelBrowser" type="VBoxContainer"]
+script = ExtResource("1_mb")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 120)
+
+[node name="ModelListBox" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ButtonRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DownloadButton" type="Button" parent="ButtonRow"]
+layout_mode = 2
+text = "Download"
+
+[node name="LoadButton" type="Button" parent="ButtonRow"]
+layout_mode = 2
+text = "Load"
+
+[node name="DescriptionLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Select a model"
+autowrap_mode = 3
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+layout_mode = 2
+visible = false
+min_value = 0.0
+max_value = 100.0
+
+[node name="DeleteConfirmDialog" type="ConfirmationDialog" parent="."]
+title = "Delete Model"
+dialog_text = "Delete this model? This cannot be undone."

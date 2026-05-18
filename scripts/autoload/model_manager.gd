@@ -11,6 +11,10 @@ signal download_progress(model_name: String, progress: float)
 signal download_completed(model_name: String, path: String)
 ## Emitted when download fails
 signal download_failed(model_name: String, error: String)
+## Emitted after a model file is successfully deleted from disk.
+signal model_deleted(model_name: String)
+## Emitted whenever the set of locally available models changes.
+signal model_list_updated()
 
 ## Directory where models are stored
 const MODELS_DIR := "user://models"
@@ -19,49 +23,57 @@ const MODELS_DIR := "user://models"
 const AVAILABLE_MODELS: Dictionary = {
 	"tiny.en": {
 		"filename": "ggml-tiny.en.bin",
-		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin",
+		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/" +
+		"ggml-tiny.en.bin",
 		"size_mb": 75,
 		"description": "Tiny English-only (~75 MB) - Fastest, lowest accuracy"
 	},
 	"tiny": {
 		"filename": "ggml-tiny.bin",
-		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin",
+		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/" +
+		"ggml-tiny.bin",
 		"size_mb": 75,
 		"description": "Tiny multilingual (~75 MB)"
 	},
 	"base.en": {
 		"filename": "ggml-base.en.bin",
-		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin",
+		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/" +
+		"ggml-base.en.bin",
 		"size_mb": 142,
 		"description": "Base English-only (~142 MB) - Good balance"
 	},
 	"base": {
 		"filename": "ggml-base.bin",
-		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin",
+		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/" +
+		"ggml-base.bin",
 		"size_mb": 142,
 		"description": "Base multilingual (~142 MB)"
 	},
 	"small.en": {
 		"filename": "ggml-small.en.bin",
-		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin",
+		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/" +
+		"ggml-small.en.bin",
 		"size_mb": 466,
 		"description": "Small English-only (~466 MB)"
 	},
 	"small": {
 		"filename": "ggml-small.bin",
-		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin",
+		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/" +
+		"ggml-small.bin",
 		"size_mb": 466,
 		"description": "Small multilingual (~466 MB)"
 	},
 	"medium.en": {
 		"filename": "ggml-medium.en.bin",
-		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.en.bin",
+		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/" +
+		"ggml-medium.en.bin",
 		"size_mb": 1500,
 		"description": "Medium English-only (~1.5 GB) - High accuracy"
 	},
 	"medium": {
 		"filename": "ggml-medium.bin",
-		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin",
+		"url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/" +
+		"ggml-medium.bin",
 		"size_mb": 1500,
 		"description": "Medium multilingual (~1.5 GB)"
 	},
@@ -105,7 +117,7 @@ func get_local_models() -> Array[String]:
 		if not dir.current_is_dir() and file.ends_with(".bin"):
 			# Map filename back to model name
 			for model_name in AVAILABLE_MODELS:
-				if AVAILABLE_MODELS[model_name].filename == file:
+				if AVAILABLE_MODELS[model_name].get("filename", "") == file:
 					models.append(model_name)
 					break
 		file = dir.get_next()
@@ -118,7 +130,7 @@ func get_local_models() -> Array[String]:
 func is_model_downloaded(model_name: String) -> bool:
 	if not AVAILABLE_MODELS.has(model_name):
 		return false
-	var filename: String = AVAILABLE_MODELS[model_name].filename
+	var filename: String = AVAILABLE_MODELS[model_name].get("filename", "")
 	return FileAccess.file_exists(MODELS_DIR.path_join(filename))
 
 
@@ -126,8 +138,26 @@ func is_model_downloaded(model_name: String) -> bool:
 func get_model_path(model_name: String) -> String:
 	if not AVAILABLE_MODELS.has(model_name):
 		return ""
-	var filename: String = AVAILABLE_MODELS[model_name].filename
+	var filename: String = AVAILABLE_MODELS[model_name].get("filename", "")
 	return MODELS_DIR.path_join(filename)
+
+
+## Return the actual file size in bytes for a downloaded model, or 0 if missing.
+func get_model_size(model_name: String) -> int:
+	var path := get_model_path(model_name)
+	if path.is_empty() or not FileAccess.file_exists(path):
+		return 0
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return 0
+	var size := file.get_length()
+	file.close()
+	return size
+
+
+## Return true when model_name matches the currently configured/loaded model.
+func is_model_loaded(model_name: String) -> bool:
+	return ConfigManager.get_value("whisper.model") == model_name
 
 
 ## Start downloading a model. Returns false if already downloading or invalid.
@@ -145,8 +175,8 @@ func download_model(model_name: String) -> bool:
 		return false
 
 	var info: Dictionary = AVAILABLE_MODELS[model_name]
-	var url: String = info.url
-	var dest_path: String = MODELS_DIR.path_join(info.filename)
+	var url: String = info.get("url", "")
+	var dest_path: String = MODELS_DIR.path_join(info.get("filename", ""))
 
 	# Create HTTP request node
 	var http := HTTPRequest.new()
@@ -167,14 +197,20 @@ func download_model(model_name: String) -> bool:
 	download_started.emit(model_name)
 
 	# Start progress monitoring
-	_monitor_download_progress(model_name, dest_path, info.size_mb * 1024 * 1024)
+	_monitor_download_progress(model_name, dest_path, int(info.get("size_mb", 0)) * 1024 * 1024)
 
 	return true
 
 
-## Delete a downloaded model
+## Delete a downloaded model. Refuses if the model is currently loaded.
 func delete_model(model_name: String) -> bool:
 	if not AVAILABLE_MODELS.has(model_name):
+		return false
+
+	if is_model_loaded(model_name):
+		push_warning(
+			"[ModelManager] Cannot delete currently loaded model: %s" % model_name
+		)
 		return false
 
 	var path := get_model_path(model_name)
@@ -182,7 +218,13 @@ func delete_model(model_name: String) -> bool:
 		return false
 
 	var err := DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
-	return err == OK
+	if err != OK:
+		push_error("[ModelManager] Failed to delete %s: %d" % [model_name, err])
+		return false
+
+	model_deleted.emit(model_name)
+	model_list_updated.emit()
+	return true
 
 
 # ---------------------------------------------------------------------------
@@ -229,3 +271,4 @@ func _on_download_completed(result: int, response_code: int, _headers: PackedStr
 
 	var path := get_model_path(model_name)
 	download_completed.emit(model_name, path)
+	model_list_updated.emit()

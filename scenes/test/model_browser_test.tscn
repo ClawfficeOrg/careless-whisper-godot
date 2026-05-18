@@ -1,0 +1,56 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/test_model_browser.gd" id="1_test"]
+[ext_resource type="PackedScene" path="res://scenes/ui/model_browser.tscn" id="2_browser"]
+
+[node name="ModelBrowserTest" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_test")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "ModelBrowser Test"
+theme_override_font_sizes/font_size = 18
+
+[node name="ModelBrowser" parent="VBox" instance=ExtResource("2_browser")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ControlRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ModelNameLabel" type="Label" parent="VBox/ControlRow"]
+layout_mode = 2
+text = "Model name:"
+
+[node name="ModelNameEdit" type="LineEdit" parent="VBox/ControlRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "e.g. base.en"
+
+[node name="SetLoadedBtn" type="Button" parent="VBox/ControlRow"]
+layout_mode = 2
+text = "Set Loaded"
+
+[node name="RefreshBtn" type="Button" parent="VBox/ControlRow"]
+layout_mode = 2
+text = "Refresh"
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Ready"
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 11

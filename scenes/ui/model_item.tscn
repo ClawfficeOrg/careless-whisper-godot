@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/model_item.gd" id="1_item"]
+
+[node name="ModelItem" type="HBoxContainer"]
+mouse_filter = 0
+script = ExtResource("1_item")
+theme_override_constants/separation = 8
+
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(140, 0)
+text = "model-name"
+theme_override_font_sizes/font_size = 12
+
+[node name="SizeLabel" type="Label" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(80, 0)
+text = "—"
+theme_override_font_sizes/font_size = 12
+
+[node name="LoadedLabel" type="Label" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(20, 0)
+text = "●"
+visible = false
+theme_override_colors/font_color = Color(0.2, 0.8, 0.2, 1.0)
+theme_override_font_sizes/font_size = 14
+
+[node name="DeleteButton" type="Button" parent="."]
+layout_mode = 2
+text = "Delete"

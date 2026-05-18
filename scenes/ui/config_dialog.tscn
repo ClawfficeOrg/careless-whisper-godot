@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/config_dialog.gd" id="1_cfg"]
-[ext_resource type="Script" path="res://scripts/ui/model_browser.gd" id="2_mb"]
+[ext_resource type="PackedScene" path="res://scenes/ui/model_browser.tscn" id="2_mb"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hotkeys_editor.tscn" id="3_hke"]
 [ext_resource type="PackedScene" path="res://scenes/ui/theme_selector.tscn" id="4_ts"]
 
@@ -25,30 +25,7 @@ anchor_bottom = 1.0
 [node name="TabContainer" type="TabContainer" parent="MarginContainer/VBox"]
 size_flags_vertical = 3
 
-[node name="Models" type="VBoxContainer" parent="MarginContainer/VBox/TabContainer"]
-script = ExtResource("2_mb")
-
-[node name="ModelList" type="ItemList" parent="MarginContainer/VBox/TabContainer/Models"]
-size_flags_vertical = 3
-
-[node name="ButtonRow" type="HBoxContainer" parent="MarginContainer/VBox/TabContainer/Models"]
-
-[node name="DownloadButton" type="Button" parent="MarginContainer/VBox/TabContainer/Models/ButtonRow"]
-text = "Download"
-
-[node name="DeleteButton" type="Button" parent="MarginContainer/VBox/TabContainer/Models/ButtonRow"]
-text = "Delete"
-
-[node name="LoadButton" type="Button" parent="MarginContainer/VBox/TabContainer/Models/ButtonRow"]
-text = "Load"
-
-[node name="DescriptionLabel" type="Label" parent="MarginContainer/VBox/TabContainer/Models"]
-text = "Select a model"
-
-[node name="ProgressBar" type="ProgressBar" parent="MarginContainer/VBox/TabContainer/Models"]
-visible = false
-min_value = 0.0
-max_value = 100.0
+[node name="Models" parent="MarginContainer/VBox/TabContainer" instance=ExtResource("2_mb")]
 
 [node name="Settings" type="VBoxContainer" parent="MarginContainer/VBox/TabContainer"]
 

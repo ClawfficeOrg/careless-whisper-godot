@@ -1,30 +1,48 @@
 ## model_browser.gd
 ## UI component for browsing, downloading, and managing whisper models.
-## Add this as a tab in the config dialog.
+## Shows per-model size, loaded indicator, and prompts for delete confirmation.
+## Designed to be embedded as the "Models" tab in the config dialog.
 extends VBoxContainer
+
+const ITEM_SCENE: PackedScene = preload("res://scenes/ui/model_item.tscn")
 
 # ---------------------------------------------------------------------------
 # UI References
 # ---------------------------------------------------------------------------
-@onready var model_list: ItemList = $ModelList
-@onready var download_button: Button = $ButtonRow/DownloadButton
-@onready var delete_button: Button = $ButtonRow/DeleteButton
-@onready var load_button: Button = $ButtonRow/LoadButton
-@onready var description_label: Label = $DescriptionLabel
-@onready var progress_bar: ProgressBar = $ProgressBar
+@onready var _model_list_box: VBoxContainer = $ScrollContainer/ModelListBox
+@onready var _download_button: Button = $ButtonRow/DownloadButton
+@onready var _load_button: Button = $ButtonRow/LoadButton
+@onready var _description_label: Label = $DescriptionLabel
+@onready var _progress_bar: ProgressBar = $ProgressBar
+@onready var _delete_confirm: ConfirmationDialog = $DeleteConfirmDialog
 
-## Emitted when a model is selected and should be loaded
+## Emitted when a model is selected and should be loaded by the parent scene.
 signal load_model_requested(model_path: String)
 
-## Whisper node reference (injected)
+## Whisper node reference (injected from ConfigDialog).
 var _whisper: Node = null
 
-## Currently selected model name
+## Currently selected model name.
 var _selected_model: String = ""
+
+## Model name awaiting delete confirmation.
+var _pending_delete: String = ""
 
 
 func _ready() -> void:
-	_connect_signals()
+	_download_button.pressed.connect(_on_download_pressed)
+	_load_button.pressed.connect(_on_load_pressed)
+	_delete_confirm.confirmed.connect(_on_delete_confirmed)
+
+	ModelManager.download_started.connect(_on_download_started)
+	ModelManager.download_progress.connect(_on_download_progress)
+	ModelManager.download_completed.connect(_on_download_completed)
+	ModelManager.download_failed.connect(_on_download_failed)
+	ModelManager.model_deleted.connect(_on_model_deleted)
+	ModelManager.model_list_updated.connect(_on_model_list_updated)
+
+	SignalBus.model_ready.connect(_on_signal_bus_model_ready)
+
 	_refresh_model_list()
 
 
@@ -41,70 +59,84 @@ func refresh() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Setup
+# Private
 # ---------------------------------------------------------------------------
 
-func _connect_signals() -> void:
-	model_list.item_selected.connect(_on_model_selected)
-	download_button.pressed.connect(_on_download_pressed)
-	delete_button.pressed.connect(_on_delete_pressed)
-	load_button.pressed.connect(_on_load_pressed)
-
-	ModelManager.download_started.connect(_on_download_started)
-	ModelManager.download_progress.connect(_on_download_progress)
-	ModelManager.download_completed.connect(_on_download_completed)
-	ModelManager.download_failed.connect(_on_download_failed)
-
-
 func _refresh_model_list() -> void:
-	model_list.clear()
-	var local_models := ModelManager.get_local_models()
+	for child in _model_list_box.get_children():
+		child.queue_free()
 
-	# Add all available models
 	for model_name in ModelManager.get_available_models():
-		var info: Dictionary = ModelManager.get_model_info(model_name)
-		var is_local := model_name in local_models
+		var is_local: bool = ModelManager.is_model_downloaded(model_name)
+		var size_bytes: int = ModelManager.get_model_size(model_name)
+		var is_loaded: bool = ModelManager.is_model_loaded(model_name)
 
-		var display := model_name
-		if is_local:
-			display = "✓ %s" % model_name
-		else:
-			display = "  %s (%d MB)" % [model_name, info.get("size_mb", 0)]
-
-		model_list.add_item(display)
-		model_list.set_item_metadata(model_list.item_count - 1, model_name)
-
-		# Gray out non-downloaded models slightly
-		if not is_local:
-			model_list.set_item_custom_fg_color(model_list.item_count - 1, Color.GRAY)
+		var item: Node = ITEM_SCENE.instantiate()
+		_model_list_box.add_child(item)
+		item.setup(model_name, size_bytes, is_loaded, is_local)
+		item.selected.connect(_on_item_selected)
+		item.delete_requested.connect(_on_item_delete_requested)
 
 	_update_button_states()
 
 
 func _update_button_states() -> void:
 	if _selected_model.is_empty():
-		download_button.disabled = true
-		delete_button.disabled = true
-		load_button.disabled = true
-		description_label.text = "Select a model"
+		_download_button.disabled = true
+		_load_button.disabled = true
+		_description_label.text = "Select a model"
 		return
 
 	var info: Dictionary = ModelManager.get_model_info(_selected_model)
-	var is_local := ModelManager.is_model_downloaded(_selected_model)
+	var is_local: bool = ModelManager.is_model_downloaded(_selected_model)
 
-	description_label.text = info.get("description", "No description")
-	download_button.disabled = is_local
-	delete_button.disabled = not is_local
-	load_button.disabled = not is_local or _whisper == null
+	_description_label.text = info.get("description", "No description")
+	_download_button.disabled = is_local
+	_load_button.disabled = not is_local or _whisper == null
+
+
+func _find_item_for_model(model_name: String) -> Node:
+	for child in _model_list_box.get_children():
+		if child.has_method("set_loaded") and child.get("_model_name") == model_name:
+			return child
+	return null
 
 
 # ---------------------------------------------------------------------------
-# Handlers
+# Handlers — model item signals
 # ---------------------------------------------------------------------------
 
-func _on_model_selected(index: int) -> void:
-	_selected_model = model_list.get_item_metadata(index)
+func _on_item_selected(model_name: String) -> void:
+	_selected_model = model_name
 	_update_button_states()
+
+
+func _on_item_delete_requested(model_name: String) -> void:
+	if ModelManager.is_model_loaded(model_name):
+		_description_label.text = (
+			"Cannot delete '%s' — it is currently loaded." % model_name
+		)
+		return
+
+	_pending_delete = model_name
+	_delete_confirm.title = "Delete Model"
+	_delete_confirm.dialog_text = (
+		"Delete '%s'?\nThis cannot be undone." % model_name
+	)
+	_delete_confirm.popup_centered()
+
+
+# ---------------------------------------------------------------------------
+# Handlers — button / dialog
+# ---------------------------------------------------------------------------
+
+func _on_delete_confirmed() -> void:
+	if _pending_delete.is_empty():
+		return
+	ModelManager.delete_model(_pending_delete)
+	if _selected_model == _pending_delete:
+		_selected_model = ""
+	_pending_delete = ""
 
 
 func _on_download_pressed() -> void:
@@ -112,25 +144,10 @@ func _on_download_pressed() -> void:
 		return
 
 	ModelManager.download_model(_selected_model)
-	download_button.disabled = true
-	download_button.text = "Downloading…"
-	progress_bar.show()
-	progress_bar.value = 0.0
-
-
-func _on_delete_pressed() -> void:
-	if _selected_model.is_empty():
-		return
-
-	var confirmed := await _show_confirm_dialog(
-		"Delete Model",
-		"Delete %s? This cannot be undone." % _selected_model
-	)
-
-	if confirmed:
-		ModelManager.delete_model(_selected_model)
-		_refresh_model_list()
-		_selected_model = ""
+	_download_button.disabled = true
+	_download_button.text = "Downloading…"
+	_progress_bar.show()
+	_progress_bar.value = 0.0
 
 
 func _on_load_pressed() -> void:
@@ -141,59 +158,59 @@ func _on_load_pressed() -> void:
 	if path.is_empty():
 		return
 
-	# Update config
 	ConfigManager.set_value("whisper.model", _selected_model)
 	ConfigManager.set_value("whisper.model_path", path)
-
-	# Emit signal for config dialog to handle
 	load_model_requested.emit(path)
 
+
+# ---------------------------------------------------------------------------
+# Handlers — ModelManager signals
+# ---------------------------------------------------------------------------
 
 func _on_download_started(model_name: String) -> void:
 	if model_name != _selected_model:
 		return
-	progress_bar.show()
-	progress_bar.value = 0.0
+	_progress_bar.show()
+	_progress_bar.value = 0.0
 
 
 func _on_download_progress(model_name: String, progress: float) -> void:
 	if model_name != _selected_model:
 		return
-	progress_bar.value = progress * 100.0
+	_progress_bar.value = progress * 100.0
 
 
 func _on_download_completed(model_name: String, _path: String) -> void:
-	if model_name != _selected_model:
-		_refresh_model_list()
-		return
-
-	progress_bar.hide()
-	download_button.text = "Download"
+	_download_button.text = "Download"
+	if model_name == _selected_model:
+		_progress_bar.hide()
 	_refresh_model_list()
-
-	# Auto-select the newly downloaded model
-	for i in model_list.item_count:
-		if model_list.get_item_metadata(i) == model_name:
-			model_list.select(i)
-			_on_model_selected(i)
+	# Re-select the just-downloaded model.
+	for child in _model_list_box.get_children():
+		if child.get("_model_name") == model_name:
+			_on_item_selected(model_name)
 			break
 
 
 func _on_download_failed(model_name: String, _error: String) -> void:
 	if model_name != _selected_model:
 		return
+	_progress_bar.hide()
+	_download_button.text = "Download"
+	_download_button.disabled = false
 
-	progress_bar.hide()
-	download_button.text = "Download"
-	download_button.disabled = false
+
+func _on_model_deleted(_model_name: String) -> void:
+	_refresh_model_list()
 
 
-func _show_confirm_dialog(title: String, message: String) -> bool:
-	var dialog := ConfirmationDialog.new()
-	dialog.dialog_text = message
-	dialog.title = title
-	add_child(dialog)
-	dialog.popup_centered()
-	var result: bool = await dialog.confirmed
-	dialog.queue_free()
-	return result
+func _on_model_list_updated() -> void:
+	_refresh_model_list()
+
+
+# ---------------------------------------------------------------------------
+# Handlers — SignalBus
+# ---------------------------------------------------------------------------
+
+func _on_signal_bus_model_ready(_model_name: String) -> void:
+	_refresh_model_list()
