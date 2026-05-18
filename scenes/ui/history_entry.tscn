@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/history_entry.gd" id="1_entry"]
+
+[node name="HistoryEntry" type="HBoxContainer"]
+script = ExtResource("1_entry")
+
+[node name="TimestampLabel" type="Label" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(148, 0)
+text = "0000-00-00 00:00:00"
+theme_override_font_sizes/font_size = 11
+
+[node name="TranscriptLabel" type="RichTextLabel" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = ""
+theme_override_font_sizes/font_size = 12

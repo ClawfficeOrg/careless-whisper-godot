@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://main_scene_cw"]
+[gd_scene load_steps=7 format=3 uid="uid://main_scene_cw"]
 
 [ext_resource type="Script" path="res://scripts/ui/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/ui/config_dialog.gd" id="2_cfgdlg"]
 [ext_resource type="Script" path="res://scripts/ui/loading_overlay.gd" id="3_loading"]
 [ext_resource type="Script" path="res://scripts/ui/model_browser.gd" id="4_models"]
 [ext_resource type="Script" path="res://scripts/ui/mic_level_meter.gd" id="5_mic"]
+[ext_resource type="PackedScene" path="res://scenes/ui/history_panel.tscn" id="6_hpanel"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -104,6 +105,10 @@ layout_mode = 2
 bbcode_enabled = true
 text = "Transcription will appear here…"
 fit_content = false
+
+[node name="HistoryPanel" parent="MarginContainer/VBoxContainer" instance=ExtResource("6_hpanel")]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 140)
 
 [node name="ConfigDialog" type="Window" parent="."]
 unique_name_in_owner = true

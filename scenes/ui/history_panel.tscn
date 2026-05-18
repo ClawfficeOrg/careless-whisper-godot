@@ -1,0 +1,29 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/history_panel.gd" id="1_panel"]
+
+[node name="HistoryPanel" type="VBoxContainer"]
+script = ExtResource("1_panel")
+
+[node name="Header" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "History"
+theme_override_font_sizes/font_size = 13
+
+[node name="ClearButton" type="Button" parent="Header"]
+layout_mode = 2
+text = "Clear"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EntriesBox" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4

@@ -9,6 +9,8 @@ extends Node
 signal transcription_segment(text: String, start_ms: int, end_ms: int, is_final: bool)
 signal transcription_completed(full_text: String)
 signal transcription_error(error: String)
+## Emitted by HistoryPanel each time a new entry is appended.
+signal history_added(text: String, timestamp: String)
 # Macro events — emitted when a voice macro is triggered
 signal macro_triggered(macro_name: String, meta: Dictionary)
 
