@@ -15,6 +15,7 @@ var input_injector: Object = null
 
 signal command_executed(command: String, success: bool)
 signal window_changed(window_info: Dictionary)
+signal focus_window_result(success: bool, message: String)
 
 var _last_window: Dictionary = {}
 
@@ -39,6 +40,7 @@ func _process(_delta: float) -> void:
 
 
 ## Get current active window information.
+
 func get_active_window() -> Dictionary:
 	if not window_manager:
 		return {"error": "WindowManager not available"}
@@ -46,6 +48,7 @@ func get_active_window() -> Dictionary:
 
 
 ## List all visible windows.
+
 func list_windows() -> Array:
 	if not window_manager:
 		return []
@@ -53,6 +56,7 @@ func list_windows() -> Array:
 
 
 ## Type a text string.
+
 func type_text(text: String) -> bool:
 	if not input_injector:
 		push_error("InputInjector not available")
@@ -63,6 +67,7 @@ func type_text(text: String) -> bool:
 
 
 ## Press a key combination (e.g. "ctrl+c").
+
 func press_key(key_combo: String) -> bool:
 	if not input_injector:
 		push_error("InputInjector not available")
@@ -73,6 +78,7 @@ func press_key(key_combo: String) -> bool:
 
 
 ## Execute vim-style command.
+
 func execute_vim_command(command: String) -> bool:
 	var parts: PackedStringArray = command.split(" ", false, 1)
 	if parts.is_empty():
@@ -121,18 +127,37 @@ func execute_vim_command(command: String) -> bool:
 	return false
 
 
-## Focus window by name.
+## Focus a window by title (case-insensitive substring match).
+## Delegates to WindowManager.focus_window via the GDExtension.
+## Emits focus_window_result(success, message) and routes via SignalBus.
+
 func focus_window(window_name: String) -> bool:
-	var windows: Array = list_windows()
-	for win: Dictionary in windows:
-		if (win.get("title", "") as String).to_lower().contains(window_name.to_lower()):
-			push_warning("Window focusing not yet implemented")
-			return false
-	push_warning("Window not found: " + window_name)
-	return false
+	if not window_manager:
+		var msg: String = "WindowManager not available"
+		push_warning("[OSController] " + msg)
+		focus_window_result.emit(false, msg)
+		return false
+
+	if not window_manager.has_method("focus_window"):
+		var msg: String = "focus_window not supported by the loaded extension"
+		push_warning("[OSController] " + msg)
+		focus_window_result.emit(false, msg)
+		return false
+
+	var success: bool = window_manager.focus_window(window_name)
+	var msg: String
+	if success:
+		msg = "Focused: " + window_name
+	else:
+		msg = "Failed to focus: " + window_name
+	focus_window_result.emit(success, msg)
+	command_executed.emit("focus_window: " + window_name, success)
+	SignalBus.focus_window_result.emit(success, msg)
+	return success
 
 
 ## Return a human-readable string describing the active window.
+
 func announce_active_window() -> String:
 	var win: Dictionary = get_active_window()
 	if win.has("error"):
@@ -147,6 +172,7 @@ func announce_active_window() -> String:
 
 
 ## Poll for window changes and emit signal when they occur.
+
 func _check_active_window() -> void:
 	var current: Dictionary = get_active_window()
 	if current.has("error"):

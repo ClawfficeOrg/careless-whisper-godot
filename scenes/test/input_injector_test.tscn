@@ -28,3 +28,12 @@ text = "Left click"
 
 [node name="OutputLabel" type="Label" parent="VBox"]
 text = "Output:"
+
+[node name="WindowId" type="LineEdit" parent="VBox"]
+placeholder_text = "Window title to focus"
+
+[node name="FocusBtn" type="Button" parent="VBox"]
+text = "Focus Window"
+
+[node name="ResultLabel" type="Label" parent="VBox"]
+text = "Focus result:"

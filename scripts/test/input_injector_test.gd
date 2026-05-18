@@ -7,6 +7,8 @@ extends Control
 var _injector: Object = null
 
 @onready var output_label: Label = $VBox/OutputLabel
+@onready var _window_id_input: LineEdit = $VBox/WindowId
+@onready var _result_label: Label = $VBox/ResultLabel
 
 
 func _ready() -> void:
@@ -19,6 +21,12 @@ func _ready() -> void:
 	$VBox/PressCtrlCButton.pressed.connect(_on_press_ctrl_c)
 	$VBox/MoveMouseButton.pressed.connect(_on_move_mouse)
 	$VBox/ClickLeftButton.pressed.connect(_on_click_left)
+	$VBox/FocusBtn.pressed.connect(_on_focus_window)
+
+	if has_node("/root/OSController"):
+		OSController.focus_window_result.connect(_on_focus_result)
+	else:
+		_result_label.text = "⚠ OSController autoload not registered"
 
 
 func _on_type_text() -> void:
@@ -47,3 +55,20 @@ func _on_click_left() -> void:
 		return
 	var ok: bool = _injector.click_mouse("left")
 	output_label.text = "Left click: %s" % ok
+
+
+func _on_focus_window() -> void:
+	var window_name: String = _window_id_input.text.strip_edges()
+	if window_name.is_empty():
+		_result_label.text = "⚠ Enter a window title first"
+		return
+	if not has_node("/root/OSController"):
+		_result_label.text = "⚠ OSController not available"
+		return
+	_result_label.text = "Focusing: " + window_name
+	OSController.focus_window(window_name)
+
+
+func _on_focus_result(success: bool, message: String) -> void:
+	var icon: String = "✓" if success else "✗"
+	_result_label.text = "%s %s" % [icon, message]

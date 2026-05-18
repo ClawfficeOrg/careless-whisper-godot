@@ -164,6 +164,33 @@ impl WindowManager {
 
         arr
     }
+
+    /// Focus a window by title (case-insensitive substring match).
+    ///
+    /// Returns true if a matching window was found and the focus request was sent.
+    #[func]
+    pub fn focus_window(&self, title: String) -> bool {
+        #[cfg(target_os = "windows")]
+        {
+            self.focus_window_windows(&title)
+        }
+
+        #[cfg(target_os = "macos")]
+        {
+            self.focus_window_macos(&title)
+        }
+
+        #[cfg(target_os = "linux")]
+        {
+            self.focus_window_linux(&title)
+        }
+
+        #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+        {
+            godot_error!("[WindowManager] focus_window not supported on this platform");
+            false
+        }
+    }
 }
 
 /// Window information structure
@@ -279,6 +306,58 @@ impl WindowManager {
         }
         Ok(results)
     }
+
+    fn focus_window_windows(&self, title: &str) -> bool {
+        use windows::Win32::Foundation::{BOOL, HWND, LPARAM};
+        use windows::Win32::UI::WindowsAndMessaging::*;
+
+        let mut hwnds: Vec<HWND> = Vec::new();
+        let ptr = &mut hwnds as *mut _ as isize;
+
+        unsafe extern "system" fn enum_focus_cb(hwnd: HWND, lparam: LPARAM) -> BOOL {
+            let hwnds = &mut *(lparam.0 as *mut Vec<HWND>);
+            if IsWindowVisible(hwnd).as_bool() && GetWindowTextLengthW(hwnd) > 0 {
+                hwnds.push(hwnd);
+            }
+            BOOL(1)
+        }
+
+        unsafe {
+            if EnumWindows(Some(enum_focus_cb), LPARAM(ptr)).is_err() {
+                godot_error!("[WindowManager] focus_window: EnumWindows failed");
+                return false;
+            }
+        }
+
+        let needle = title.to_lowercase();
+        for hwnd in hwnds {
+            unsafe {
+                let mut buf = [0u16; 512];
+                let len = GetWindowTextW(hwnd, &mut buf);
+                if len == 0 {
+                    continue;
+                }
+                let win_title = String::from_utf16_lossy(&buf[..len as usize]).to_lowercase();
+                if win_title.contains(&needle) {
+                    let ok = SetForegroundWindow(hwnd);
+                    if !ok.as_bool() {
+                        godot_error!(
+                            "[WindowManager] SetForegroundWindow failed for '{}'",
+                            title
+                        );
+                        return false;
+                    }
+                    return true;
+                }
+            }
+        }
+
+        godot_error!(
+            "[WindowManager] focus_window: no window found matching '{}'",
+            title
+        );
+        false
+    }
 }
 
 // macOS implementation
@@ -330,6 +409,14 @@ impl WindowManager {
                 .collect())
         }
     }
+
+    fn focus_window_macos(&self, title: &str) -> bool {
+        godot_error!(
+            "[WindowManager] focus_window not implemented on macOS (requested: '{}')",
+            title
+        );
+        false
+    }
 }
 
 // Linux implementation
@@ -362,5 +449,31 @@ impl WindowManager {
     fn list_windows_linux(&self) -> Result<Vec<WindowInfo>, String> {
         // TODO: Implement X11 window enumeration via xcb
         Ok(vec![])
+    }
+
+    fn focus_window_linux(&self, title: &str) -> bool {
+        // Try wmctrl first (most reliable on X11/Wayland with XWayland)
+        if let Ok(status) = std::process::Command::new("wmctrl")
+            .args(["-a", title])
+            .status()
+        {
+            if status.success() {
+                return true;
+            }
+        }
+        // Fall back to xdotool
+        if let Ok(status) = std::process::Command::new("xdotool")
+            .args(["search", "--name", title, "windowactivate", "--sync"])
+            .status()
+        {
+            if status.success() {
+                return true;
+            }
+        }
+        godot_error!(
+            "[WindowManager] focus_window: wmctrl and xdotool both failed for '{}'",
+            title
+        );
+        false
     }
 }
