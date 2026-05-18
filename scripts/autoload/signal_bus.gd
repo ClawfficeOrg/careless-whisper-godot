@@ -30,6 +30,7 @@ signal model_load_failed(error: String)
 # Config
 # ---------------------------------------------------------------------------
 signal config_changed(key: String, value: Variant)
+signal theme_changed(theme_id: String)
 
 # ---------------------------------------------------------------------------
 # OS control

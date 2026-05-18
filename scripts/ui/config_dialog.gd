@@ -1,5 +1,6 @@
 ## config_dialog.gd
-## Config dialog — model selection, language settings, and mic input device.
+## Config dialog — model selection, language/thread settings, hotkeys,
+## startup behaviour, and theme selection.
 extends Window
 
 # ---------------------------------------------------------------------------
@@ -13,6 +14,8 @@ extends Window
 @onready var close_button: Button        = %CloseButton
 @onready var mic_option: OptionButton    = %MicOption
 @onready var model_browser: VBoxContainer = $MarginContainer/VBox/TabContainer/Models
+@onready var _launch_on_boot: CheckBox   = %LaunchOnBootCheck
+@onready var _startup_mode: OptionButton = %StartupModeOption
 
 ## Whisper node reference (injected from Main scene via set_whisper_node)
 var _whisper: Node = null
@@ -48,8 +51,8 @@ func _populate_mic_dropdown() -> void:
 	for device in devices:
 		mic_option.add_item(device)
 	# Select the currently active device
-	var current := AudioServer.get_input_device()
-	for i in mic_option.item_count:
+	var current: String = AudioServer.get_input_device()
+	for i in range(mic_option.get_item_count()):
 		if mic_option.get_item_text(i) == current:
 			mic_option.select(i)
 			break
@@ -64,15 +67,42 @@ func _load_current_config() -> void:
 	language_edit.text = ConfigManager.get_value("whisper.language", "en")
 	threads_spin.value = ConfigManager.get_value("whisper.threads", 4)
 
+	# Startup tab
+	_launch_on_boot.pressed = ConfigManager.get_startup_enabled()
+	_populate_startup_mode_option()
+
+
+func _populate_startup_mode_option() -> void:
+	_startup_mode.clear()
+	_startup_mode.add_item("Normal")
+	_startup_mode.add_item("Minimized")
+	_startup_mode.add_item("System Tray")
+
+	var mode: String = ConfigManager.get_startup_mode()
+	match mode:
+		"minimized":
+			_startup_mode.select(1)
+		"tray":
+			_startup_mode.select(2)
+		_:
+			_startup_mode.select(0)
+
 
 func _connect_signals() -> void:
 	browse_button.pressed.connect(_on_browse)
 	load_button.pressed.connect(_on_load_model)
 	close_button.pressed.connect(hide)
-	language_edit.text_changed.connect(func(t: String) -> void: ConfigManager.set_value("whisper.language", t))
-	threads_spin.value_changed.connect(func(v: float) -> void: ConfigManager.set_value("whisper.threads", int(v)))
+	language_edit.text_changed.connect(
+		func(t: String) -> void: ConfigManager.set_value("whisper.language", t)
+	)
+	threads_spin.value_changed.connect(
+		func(v: float) -> void: ConfigManager.set_value("whisper.threads", int(v))
+	)
 	mic_option.item_selected.connect(_on_mic_selected)
 	close_requested.connect(hide)
+
+	_launch_on_boot.toggled.connect(_on_launch_on_boot_toggled)
+	_startup_mode.item_selected.connect(_on_startup_mode_selected)
 
 	# Connect to model browser's load request
 	if model_browser != null:
@@ -171,3 +201,16 @@ func _finish_model_load(model_name: String, success: bool) -> void:
 		SignalBus.model_ready.emit(model_name)
 	else:
 		SignalBus.model_load_failed.emit("Failed to load model: %s" % model_name)
+
+
+func _on_launch_on_boot_toggled(enabled: bool) -> void:
+	ConfigManager.set_startup_enabled(enabled)
+	push_warning(
+		"[ConfigDialog] launch_on_boot=%s (OS registration not yet implemented)" % enabled
+	)
+
+
+func _on_startup_mode_selected(index: int) -> void:
+	var modes: Array[String] = ["normal", "minimized", "tray"]
+	if index >= 0 and index < modes.size():
+		ConfigManager.set_startup_mode(modes[index])

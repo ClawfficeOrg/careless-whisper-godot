@@ -93,6 +93,13 @@ const DEFAULTS: Dictionary = {
 	"ocr.enabled": false,
 	"ocr.language": "eng",
 	"ocr.confidence_threshold": 0.75,
+
+	# --- UI / appearance ---
+	"ui.theme": "dark",
+
+	# --- Startup behaviour ---
+	"startup.launch_on_boot": false,
+	"startup.window_mode": "normal",
 }
 
 
@@ -113,6 +120,58 @@ func set_value(key: String, value: Variant) -> void:
 	_data[key] = value
 	_save()
 	SignalBus.config_changed.emit(key, value)
+
+
+# ---------------------------------------------------------------------------
+# Convenience: hotkeys
+# ---------------------------------------------------------------------------
+
+## Return the stored hotkey string for the given config key.
+func get_hotkey(key_id: String) -> String:
+	return get_value(key_id, "")
+
+
+## Persist a hotkey string and notify listeners.
+func set_hotkey(key_id: String, value: String) -> void:
+	set_value(key_id, value)
+
+
+# ---------------------------------------------------------------------------
+# Convenience: theme
+# ---------------------------------------------------------------------------
+
+## Return the active theme identifier (e.g. "dark", "light", "high_contrast").
+func get_theme_id() -> String:
+	return get_value("ui.theme", "dark")
+
+
+## Persist a theme identifier.
+func set_theme_id(theme_id: String) -> void:
+	set_value("ui.theme", theme_id)
+
+
+# ---------------------------------------------------------------------------
+# Convenience: startup
+# ---------------------------------------------------------------------------
+
+## Return whether the app should launch at system startup.
+func get_startup_enabled() -> bool:
+	return get_value("startup.launch_on_boot", false)
+
+
+## Persist the launch-at-startup preference.
+func set_startup_enabled(enabled: bool) -> void:
+	set_value("startup.launch_on_boot", enabled)
+
+
+## Return the startup window mode string (e.g. "normal", "minimized", "tray").
+func get_startup_mode() -> String:
+	return get_value("startup.window_mode", "normal")
+
+
+## Persist the startup window mode.
+func set_startup_mode(mode: String) -> void:
+	set_value("startup.window_mode", mode)
 
 
 # ---------------------------------------------------------------------------

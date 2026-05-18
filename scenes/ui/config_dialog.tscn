@@ -1,0 +1,128 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/config_dialog.gd" id="1_cfg"]
+[ext_resource type="Script" path="res://scripts/ui/model_browser.gd" id="2_mb"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hotkeys_editor.tscn" id="3_hke"]
+[ext_resource type="PackedScene" path="res://scenes/ui/theme_selector.tscn" id="4_ts"]
+
+[node name="ConfigDialog" type="Window"]
+title = "Settings"
+size = Vector2i(620, 520)
+script = ExtResource("1_cfg")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="TabContainer" type="TabContainer" parent="MarginContainer/VBox"]
+size_flags_vertical = 3
+
+[node name="Models" type="VBoxContainer" parent="MarginContainer/VBox/TabContainer"]
+script = ExtResource("2_mb")
+
+[node name="ModelList" type="ItemList" parent="MarginContainer/VBox/TabContainer/Models"]
+size_flags_vertical = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="MarginContainer/VBox/TabContainer/Models"]
+
+[node name="DownloadButton" type="Button" parent="MarginContainer/VBox/TabContainer/Models/ButtonRow"]
+text = "Download"
+
+[node name="DeleteButton" type="Button" parent="MarginContainer/VBox/TabContainer/Models/ButtonRow"]
+text = "Delete"
+
+[node name="LoadButton" type="Button" parent="MarginContainer/VBox/TabContainer/Models/ButtonRow"]
+text = "Load"
+
+[node name="DescriptionLabel" type="Label" parent="MarginContainer/VBox/TabContainer/Models"]
+text = "Select a model"
+
+[node name="ProgressBar" type="ProgressBar" parent="MarginContainer/VBox/TabContainer/Models"]
+visible = false
+min_value = 0.0
+max_value = 100.0
+
+[node name="Settings" type="VBoxContainer" parent="MarginContainer/VBox/TabContainer"]
+
+[node name="LanguageRow" type="HBoxContainer" parent="MarginContainer/VBox/TabContainer/Settings"]
+
+[node name="LanguageLabel" type="Label" parent="MarginContainer/VBox/TabContainer/Settings/LanguageRow"]
+text = "Language:"
+custom_minimum_size = Vector2(150, 0)
+
+[node name="LanguageEdit" type="LineEdit" parent="MarginContainer/VBox/TabContainer/Settings/LanguageRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+placeholder_text = "en"
+
+[node name="ThreadsRow" type="HBoxContainer" parent="MarginContainer/VBox/TabContainer/Settings"]
+
+[node name="ThreadsLabel" type="Label" parent="MarginContainer/VBox/TabContainer/Settings/ThreadsRow"]
+text = "Inference threads:"
+custom_minimum_size = Vector2(150, 0)
+
+[node name="ThreadsSpin" type="SpinBox" parent="MarginContainer/VBox/TabContainer/Settings/ThreadsRow"]
+unique_name_in_owner = true
+min_value = 1.0
+max_value = 32.0
+value = 4.0
+
+[node name="MicRow" type="HBoxContainer" parent="MarginContainer/VBox/TabContainer/Settings"]
+
+[node name="MicLabel" type="Label" parent="MarginContainer/VBox/TabContainer/Settings/MicRow"]
+text = "Microphone:"
+custom_minimum_size = Vector2(150, 0)
+
+[node name="MicOption" type="OptionButton" parent="MarginContainer/VBox/TabContainer/Settings/MicRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="ModelPathRow" type="HBoxContainer" parent="MarginContainer/VBox/TabContainer/Settings"]
+
+[node name="ModelPathEdit" type="LineEdit" parent="MarginContainer/VBox/TabContainer/Settings/ModelPathRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+placeholder_text = "Path to .bin model file"
+
+[node name="BrowseButton" type="Button" parent="MarginContainer/VBox/TabContainer/Settings/ModelPathRow"]
+unique_name_in_owner = true
+text = "Browse..."
+
+[node name="LoadModelButton" type="Button" parent="MarginContainer/VBox/TabContainer/Settings"]
+unique_name_in_owner = true
+text = "Load Model"
+
+[node name="Hotkeys" parent="MarginContainer/VBox/TabContainer" instance=ExtResource("3_hke")]
+
+[node name="Startup" type="VBoxContainer" parent="MarginContainer/VBox/TabContainer"]
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBox/TabContainer/Startup"]
+text = "Startup"
+theme_override_font_sizes/font_size = 16
+
+[node name="LaunchOnBootCheck" type="CheckBox" parent="MarginContainer/VBox/TabContainer/Startup"]
+unique_name_in_owner = true
+text = "Launch at system startup"
+
+[node name="StartupModeRow" type="HBoxContainer" parent="MarginContainer/VBox/TabContainer/Startup"]
+
+[node name="StartupModeLabel" type="Label" parent="MarginContainer/VBox/TabContainer/Startup/StartupModeRow"]
+text = "Window mode on startup:"
+custom_minimum_size = Vector2(200, 0)
+
+[node name="StartupModeOption" type="OptionButton" parent="MarginContainer/VBox/TabContainer/Startup/StartupModeRow"]
+unique_name_in_owner = true
+
+[node name="Theme" parent="MarginContainer/VBox/TabContainer" instance=ExtResource("4_ts")]
+
+[node name="CloseButton" type="Button" parent="MarginContainer/VBox"]
+unique_name_in_owner = true
+text = "Close"

@@ -1,0 +1,31 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/test_settings_dialog.gd" id="1_tsd"]
+
+[node name="SettingsDialogTest" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_tsd")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+
+[node name="TitleLabel" type="Label" parent="VBox"]
+text = "Settings Dialog Test"
+theme_override_font_sizes/font_size = 18
+
+[node name="OpenButton" type="Button" parent="VBox"]
+text = "Open Settings Dialog"
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+text = "Status: ready"
+
+[node name="ThemeLabel" type="Label" parent="VBox"]
+text = "ui.theme = ..."
+
+[node name="StartupLabel" type="Label" parent="VBox"]
+text = "startup = ..."
+
+[node name="HotkeyLabel" type="Label" parent="VBox"]
+text = "PTT insert = ..."

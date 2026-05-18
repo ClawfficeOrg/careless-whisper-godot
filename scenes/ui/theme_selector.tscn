@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/theme_selector.gd" id="1_ts"]
+
+[node name="ThemeSelector" type="VBoxContainer"]
+script = ExtResource("1_ts")
+
+[node name="TitleLabel" type="Label" parent="."]
+text = "Theme"
+theme_override_font_sizes/font_size = 16
+
+[node name="ThemeOption" type="OptionButton" parent="."]
+size_flags_horizontal = 3
+
+[node name="PreviewLabel" type="Label" parent="."]
+text = ""
+autowrap_mode = 3
