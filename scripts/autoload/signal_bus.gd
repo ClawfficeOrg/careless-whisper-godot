@@ -53,6 +53,16 @@ signal focus_window_result(success: bool, message: String)
 signal tray_menu_selected(item_id: String)
 
 # ---------------------------------------------------------------------------
+# StreamDeck (task-8)
+# ---------------------------------------------------------------------------
+
+## Emitted by StreamDeckHandlers after an action handler completes.
+signal streamdeck_action_executed(action_id: String, result: Dictionary)
+
+## Emitted by the notify action handler with the notification message.
+signal streamdeck_notification(message: String)
+
+# ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------
 signal app_quitting()

@@ -1,0 +1,39 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/streamdeck_test.gd" id="1_sdtest"]
+
+[node name="StreamDeckTest" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_sdtest")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 900.0
+offset_bottom = 600.0
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+text = "Checking StreamDeckServer…"
+
+[node name="ButtonRow" type="HBoxContainer" parent="VBox"]
+
+[node name="StartRecordingBtn" type="Button" parent="VBox/ButtonRow"]
+text = "Start Recording"
+
+[node name="StopRecordingBtn" type="Button" parent="VBox/ButtonRow"]
+text = "Stop Recording"
+
+[node name="ToggleMuteBtn" type="Button" parent="VBox/ButtonRow"]
+text = "Toggle Mute"
+
+[node name="LoadModelBtn" type="Button" parent="VBox/ButtonRow"]
+text = "Load Model (tiny.en)"
+
+[node name="NotifyBtn" type="Button" parent="VBox/ButtonRow"]
+text = "Send Notify"
+
+[node name="LogText" type="TextEdit" parent="VBox"]
+custom_minimum_size = Vector2(0, 400)
+editable = false
+text = ""
