@@ -1,0 +1,51 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/push_to_talk_button.gd" id="1_pttbtn"]
+
+[node name="PushToTalkButton" type="Control"]
+custom_minimum_size = Vector2(220, 0)
+script = ExtResource("1_pttbtn")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="TopRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ModeLabel" type="Label" parent="VBox/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Mode: Hold"
+theme_override_font_sizes/font_size = 11
+
+[node name="ToggleModeButton" type="Button" parent="VBox/TopRow"]
+layout_mode = 2
+text = "Switch"
+tooltip_text = "Switch between Hold and Toggle mode"
+
+[node name="PTTButton" type="Button" parent="VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 32)
+text = "Push to Talk"
+tooltip_text = "Hold to listen; release to stop"
+
+[node name="StateLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "● Idle"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 11
+
+[node name="HotwordLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Hotword: Off (stub)"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 10
+modulate = Color(0.6, 0.6, 0.6, 1)

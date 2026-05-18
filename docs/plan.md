@@ -23,6 +23,6 @@ Completed tasks are marked `[x]` automatically by Ralph after each successful co
 - [x] `task-10`: End-to-end transcription test scene (headless-capable)
 - [x] `task-11`: Mic device hot-swap support — device change detection and reconnect
 - [x] `task-12`: Output history panel — scrollable list of past transcriptions with timestamps
-- [ ] `task-13`: Hotword and push-to-talk toggle mode (hold vs tap-to-toggle)
+- [x] `task-13`: Hotword and push-to-talk toggle mode (hold vs tap-to-toggle)
 - [ ] `task-14`: Model management UI improvements — size display, loaded indicator, delete confirm
 - [ ] `task-15`: CI workflow — GitHub Actions build matrix for Windows whisper_cpp DLL

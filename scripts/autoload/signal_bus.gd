@@ -79,6 +79,18 @@ signal mic_device_list_changed(devices: Array)
 signal mic_state_changed(state: String)
 
 # ---------------------------------------------------------------------------
+# Push-to-talk / hotword (task-13)
+# ---------------------------------------------------------------------------
+## Emitted when PTT begins (hold press or toggle-on).
+signal push_to_talk_pressed()
+## Emitted when PTT ends (hold release or toggle-off).
+signal push_to_talk_released()
+## Emitted whenever the PTT active state changes.
+signal push_to_talk_toggled(enabled: bool)
+## Emitted when the hotword engine (or stub) detects the wake word.
+signal hotword_detected()
+
+# ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------
 signal app_quitting()

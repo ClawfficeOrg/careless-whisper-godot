@@ -24,6 +24,22 @@ signal macro_triggered(macro_id: String, context: Dictionary)
 signal window_command(action: String, target: String, params: Dictionary)
 
 # ---------------------------------------------------------------------------
+# Push-to-talk signals (task-13)
+# ---------------------------------------------------------------------------
+
+## Emitted when PTT listening begins (hold press or toggle-on).
+signal push_to_talk_pressed()
+
+## Emitted when PTT listening ends (hold release or toggle-off).
+signal push_to_talk_released()
+
+## Emitted whenever the PTT active state changes.
+signal push_to_talk_toggled(enabled: bool)
+
+## Emitted when the hotword engine (or stub) detects the wake word.
+signal hotword_detected()
+
+# ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
@@ -33,6 +49,16 @@ var enabled: bool = true
 ## Prefix that must appear before commands. Empty string for no prefix.
 ## Example: "computer, type hello" with prefix "computer" -> type command
 var command_prefix: String = ""
+
+# ---------------------------------------------------------------------------
+# Push-to-talk state (task-13)
+# ---------------------------------------------------------------------------
+
+## Current PTT mode: "hold" (held key/button activates) or "toggle" (tap to toggle).
+var _ptt_mode: String = "hold"
+
+## Whether PTT is currently active (listening).
+var _ptt_active: bool = false
 
 # ---------------------------------------------------------------------------
 # Internal
@@ -60,6 +86,24 @@ var _move_pixels_pattern: RegEx
 func _ready() -> void:
 	_compile_patterns()
 	SignalBus.transcription_completed.connect(_on_transcription_completed)
+	SignalBus.config_changed.connect(_on_config_changed)
+	_ptt_mode = ConfigManager.get_ptt_mode()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not InputMap.has_action("push_to_talk"):
+		return
+	if event.is_action("push_to_talk") and not event.is_echo():
+		if event.is_pressed():
+			if _ptt_mode == "hold":
+				ptt_press()
+			elif _ptt_mode == "toggle":
+				if _ptt_active:
+					ptt_release()
+				else:
+					ptt_press()
+		elif event.is_released() and _ptt_mode == "hold":
+			ptt_release()
 
 
 func _compile_patterns() -> void:
@@ -234,11 +278,76 @@ func emit_command(command_name: String, args: Dictionary) -> void:
 
 
 # ---------------------------------------------------------------------------
+# Push-to-talk public API (task-13)
+# ---------------------------------------------------------------------------
+
+## Begin PTT listening. Safe to call when already active.
+func ptt_press() -> void:
+	if _ptt_active:
+		return
+	_ptt_active = true
+	push_to_talk_pressed.emit()
+	push_to_talk_toggled.emit(true)
+	SignalBus.push_to_talk_pressed.emit()
+	SignalBus.push_to_talk_toggled.emit(true)
+
+
+## End PTT listening. Safe to call when already idle.
+func ptt_release() -> void:
+	if not _ptt_active:
+		return
+	_ptt_active = false
+	push_to_talk_released.emit()
+	push_to_talk_toggled.emit(false)
+	SignalBus.push_to_talk_released.emit()
+	SignalBus.push_to_talk_toggled.emit(false)
+
+
+## Return whether PTT is currently active.
+func is_ptt_active() -> bool:
+	return _ptt_active
+
+
+## Return the current PTT mode ("hold" or "toggle").
+func get_ptt_mode() -> String:
+	return _ptt_mode
+
+
+## Set the PTT mode and persist to config. mode must be "hold" or "toggle".
+func set_ptt_mode(mode: String) -> void:
+	if mode != "hold" and mode != "toggle":
+		push_warning('[CommandDispatcher] Unknown PTT mode: "%s" — ignoring' % mode)
+		return
+	if _ptt_active:
+		ptt_release()
+	_ptt_mode = mode
+	ConfigManager.set_ptt_mode(mode)
+
+
+## Simulate a hotword detection event (stub — real engine connects here).
+## Behaviour matches current mode: begins listening in either mode.
+func simulate_hotword() -> void:
+	hotword_detected.emit()
+	SignalBus.hotword_detected.emit()
+	if not _ptt_active:
+		ptt_press()
+
+
+# ---------------------------------------------------------------------------
 # Signal handlers
 # ---------------------------------------------------------------------------
 
 func _on_transcription_completed(text: String) -> void:
 	parse(text)
+
+
+func _on_config_changed(key: String, value: Variant) -> void:
+	if key == "ptt.mode":
+		var new_mode: String = str(value)
+		if new_mode == "hold" or new_mode == "toggle":
+			if _ptt_active:
+				ptt_release()
+			_ptt_mode = new_mode
 
 
 # ---------------------------------------------------------------------------

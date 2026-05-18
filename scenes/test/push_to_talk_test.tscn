@@ -1,0 +1,81 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/push_to_talk_test.gd" id="1_test"]
+[ext_resource type="PackedScene" path="res://scenes/ui/PushToTalkButton.tscn" id="2_pttbtn"]
+
+[node name="PushToTalkTest" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_test")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Push-to-Talk / Hotword Test (task-13)"
+theme_override_font_sizes/font_size = 18
+
+[node name="PushToTalkButton" parent="VBox" instance=ExtResource("2_pttbtn")]
+layout_mode = 2
+
+[node name="InfoRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ModeRowLabel" type="Label" parent="VBox/InfoRow"]
+layout_mode = 2
+text = "PTT Mode: hold"
+theme_override_font_sizes/font_size = 11
+
+[node name="ActiveRowLabel" type="Label" parent="VBox/InfoRow"]
+layout_mode = 2
+text = "Active: false  |  Hotword: Off (stub)"
+theme_override_font_sizes/font_size = 11
+
+[node name="ButtonRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SimPressBtn" type="Button" parent="VBox/ButtonRow"]
+layout_mode = 2
+text = "Sim Press"
+
+[node name="SimReleaseBtn" type="Button" parent="VBox/ButtonRow"]
+layout_mode = 2
+text = "Sim Release"
+
+[node name="SimHotwordBtn" type="Button" parent="VBox/ButtonRow"]
+layout_mode = 2
+text = "Sim Hotword"
+
+[node name="SetHoldBtn" type="Button" parent="VBox/ButtonRow"]
+layout_mode = 2
+text = "Mode: Hold"
+
+[node name="SetToggleBtn" type="Button" parent="VBox/ButtonRow"]
+layout_mode = 2
+text = "Mode: Toggle"
+
+[node name="ToggleHotwordBtn" type="Button" parent="VBox/ButtonRow"]
+layout_mode = 2
+text = "Toggle Hotword"
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Ready"
+theme_override_font_sizes/font_size = 11
+
+[node name="LogLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 11
+autowrap_mode = 3

@@ -96,6 +96,10 @@ const DEFAULTS: Dictionary = {
 	"ocr.language": "eng",
 	"ocr.confidence_threshold": 0.75,
 
+	# --- Push-to-talk / hotword (task-13) ---
+	"ptt.mode": "hold",
+	"ptt.hotword_enabled": false,
+
 	# --- UI / appearance ---
 	"ui.theme": "dark",
 
@@ -174,6 +178,30 @@ func get_startup_mode() -> String:
 ## Persist the startup window mode.
 func set_startup_mode(mode: String) -> void:
 	set_value("startup.window_mode", mode)
+
+
+# ---------------------------------------------------------------------------
+# Convenience: push-to-talk (task-13)
+# ---------------------------------------------------------------------------
+
+## Return the PTT mode identifier ("hold" or "toggle").
+func get_ptt_mode() -> String:
+	return get_value("ptt.mode", "hold")
+
+
+## Persist the PTT mode identifier.
+func set_ptt_mode(mode: String) -> void:
+	set_value("ptt.mode", mode)
+
+
+## Return whether hotword detection is enabled.
+func get_hotword_enabled() -> bool:
+	return get_value("ptt.hotword_enabled", false)
+
+
+## Persist the hotword-enabled flag.
+func set_hotword_enabled(enabled: bool) -> void:
+	set_value("ptt.hotword_enabled", enabled)
 
 
 # ---------------------------------------------------------------------------
