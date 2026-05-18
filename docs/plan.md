@@ -17,7 +17,7 @@ Completed tasks are marked `[x]` automatically by Ralph after each successful co
 - [x] `task-4`: Expand settings dialog — hotkeys tab, startup behavior, theme selector
 - [x] `task-5`: Add system tray icon with right-click menu (Windows and Linux)
 - [x] `task-6`: MacroManager autoload with three sample voice-triggered macros
-- [ ] `task-7`: CommandDispatcher — expand patterns for macro triggers and window commands
+- [x] `task-7`: CommandDispatcher — expand patterns for macro triggers and window commands
 - [ ] `task-8`: StreamDeck HTTP integration — tiny HTTP server and five sample action handlers
 - [ ] `task-9`: StreamDeck plugin — companion .streamDeckPlugin scaffold with manifest
 - [ ] `task-10`: End-to-end transcription test scene (headless-capable)

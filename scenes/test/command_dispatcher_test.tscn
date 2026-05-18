@@ -1,0 +1,52 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/command_dispatcher_test.gd" id="1_test"]
+
+[node name="CommandDispatcherTest" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_test")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+
+[node name="TitleLabel" type="Label" parent="VBox"]
+text = "CommandDispatcher Test (task-7)"
+
+[node name="ResultLabel" type="Label" parent="VBox"]
+text = "Result: (none)"
+
+[node name="TranscriptInput" type="LineEdit" parent="VBox"]
+placeholder_text = "Enter transcript phrase…"
+size_flags_horizontal = 3
+
+[node name="DispatchButton" type="Button" parent="VBox"]
+text = "Dispatch"
+
+[node name="SectionLabel" type="Label" parent="VBox"]
+text = "--- Preset Tests ---"
+
+[node name="MacroButton" type="Button" parent="VBox"]
+text = "Test: \"run macro open_calculator\""
+
+[node name="FocusSideButton" type="Button" parent="VBox"]
+text = "Test: \"focus terminal on left\""
+
+[node name="FocusButton" type="Button" parent="VBox"]
+text = "Test: \"focus firefox\""
+
+[node name="CloseButton" type="Button" parent="VBox"]
+text = "Test: \"close browser\""
+
+[node name="MovePixelsButton" type="Button" parent="VBox"]
+text = "Test: \"move window three pixels right\""
+
+[node name="MoveSideButton" type="Button" parent="VBox"]
+text = "Test: \"move window to the left\""
+
+[node name="TypeButton" type="Button" parent="VBox"]
+text = "Test: \"type hello world\""
+
+[node name="PressButton" type="Button" parent="VBox"]
+text = "Test: \"press escape\""

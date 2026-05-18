@@ -38,6 +38,8 @@ const DEFAULTS: Dictionary = {
 
 	# --- v0.1: Command mode verbs ---
 	"command.prefix": "",
+	"command.macro_triggers_enabled": true,
+	"command.window_commands_enabled": true,
 	"command.universal_copy": "Control+c",
 	"command.universal_paste": "Control+v",
 	"command.universal_cut": "Control+x",

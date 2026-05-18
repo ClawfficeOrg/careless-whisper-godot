@@ -35,6 +35,14 @@ signal config_changed(key: String, value: Variant)
 signal theme_changed(theme_id: String)
 
 # ---------------------------------------------------------------------------
+# Commands (task-7)
+# ---------------------------------------------------------------------------
+## Emitted by CommandDispatcher for every matched command verb.
+signal command_detected(command: String, args: Dictionary)
+## Emitted by CommandDispatcher when a window management command is parsed.
+signal window_command(action: String, target: String, params: Dictionary)
+
+# ---------------------------------------------------------------------------
 # OS control
 # ---------------------------------------------------------------------------
 signal focus_window_result(success: bool, message: String)
