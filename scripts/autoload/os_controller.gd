@@ -34,8 +34,10 @@ func _ready() -> void:
 	_check_active_window()
 
 
+
 func _process(_delta: float) -> void:
 	_check_active_window()
+
 
 
 ## Get current active window information.
@@ -45,11 +47,13 @@ func get_active_window() -> Dictionary:
 	return window_manager.get_active_window()
 
 
+
 ## List all visible windows.
 func list_windows() -> Array:
 	if not window_manager:
 		return []
 	return window_manager.list_windows()
+
 
 
 ## Type a text string.
@@ -62,6 +66,7 @@ func type_text(text: String) -> bool:
 	return success
 
 
+
 ## Press a key combination (e.g. "ctrl+c").
 func press_key(key_combo: String) -> bool:
 	if not input_injector:
@@ -70,6 +75,7 @@ func press_key(key_combo: String) -> bool:
 	var success: bool = input_injector.press_key(key_combo)
 	command_executed.emit("press_key: " + key_combo, success)
 	return success
+
 
 
 ## Execute vim-style command.
@@ -121,6 +127,7 @@ func execute_vim_command(command: String) -> bool:
 	return false
 
 
+
 ## Focus window by name.
 func focus_window(window_name: String) -> bool:
 	var windows: Array = list_windows()
@@ -130,6 +137,7 @@ func focus_window(window_name: String) -> bool:
 			return false
 	push_warning("Window not found: " + window_name)
 	return false
+
 
 
 ## Return a human-readable string describing the active window.
@@ -146,6 +154,7 @@ func announce_active_window() -> String:
 	return text
 
 
+
 ## Poll for window changes and emit signal when they occur.
 func _check_active_window() -> void:
 	var current: Dictionary = get_active_window()
@@ -154,6 +163,7 @@ func _check_active_window() -> void:
 	if _last_window.is_empty() or current.get("title", "") != _last_window.get("title", ""):
 		_last_window = current
 		window_changed.emit(current)
+
 
 
 func _switch_to_insert_mode() -> bool:
