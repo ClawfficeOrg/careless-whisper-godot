@@ -1,0 +1,27 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/macro_manager_test.gd" id="1_test"]
+
+[node name="MacroManagerTest" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_test")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 24.0
+offset_top = 24.0
+
+[node name="TitleLabel" type="Label" parent="VBox"]
+text = "MacroManager Test"
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+text = "Status: (none)"
+
+[node name="TriggerHelloButton" type="Button" parent="VBox"]
+text = "Trigger: \"hello computer\""
+
+[node name="TriggerScreenshotButton" type="Button" parent="VBox"]
+text = "Trigger: \"take screenshot\""
+
+[node name="TriggerBrowserButton" type="Button" parent="VBox"]
+text = "Trigger: \"open browser\""

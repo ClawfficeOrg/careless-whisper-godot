@@ -29,6 +29,7 @@ CommandDispatcher="*res://scripts/autoload/command_dispatcher.gd"
 VimController="*res://scripts/integrations/vim_controller.gd"
 OSController="*res://scripts/autoload/os_controller.gd"
 TrayManager="*res://scripts/integrations/tray_manager.gd"
+MacroManager="*res://scripts/autoload/macro_manager.gd"
 
 [display]
 
