@@ -26,5 +26,11 @@ Completed tasks are marked `[x]` automatically by Ralph after each successful co
 - [x] `task-13`: Hotword and push-to-talk toggle mode (hold vs tap-to-toggle)
 - [x] `task-14`: Model management UI improvements — size display, loaded indicator, delete confirm
 - [x] `task-15`: CI workflow — GitHub Actions build matrix for Windows whisper_cpp DLL
+- [ ] `task-16`: Whichkey overlay — vim mode letter-jump hint layer (CanvasLayer with
+  Label hints over focusable targets; shows on command hotkey, hides on Escape/letter;
+  reads overlay.hint_charset from config; wired into VimController)
+- [ ] `task-17`: UI polish — custom Theme resource (.tres), consistent font, accent
+  colour, panel/button styles, tighter margins across main and config scenes
 
-Note: task-15 intentionally left unchecked; requires repo secrets and human confirmation. See docs/ralph-log.md for BLOCKED entry.
+Note: task-15 CI workflow intentionally left unchecked pending repo secrets. See docs/ralph-log.md.
+Note: task-16 and task-17 identified during manual testing loop on task-15 branch.

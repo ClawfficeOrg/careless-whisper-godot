@@ -67,3 +67,38 @@ DONE: task-15 — commit f0d9ef0 pushed on task-15. Premium calls this session: 
 ## 2026-05-18 05:44
 
 Session ended: all tasks complete. Tasks: 16. Premium requests: 16.
+
+## Manual testing loop — task-15 bugs fixed (commit 2d2b6d5)
+
+During manual testing on task-15 branch the following bugs were found and fixed:
+
+- FIXED: os_controller.gd had `class_name OSController` which shadowed the autoload
+  singleton — root cause of parse errors in mic_manager, test scripts, and the
+  Node not found errors in model_browser.gd.
+- FIXED: config_dialog.gd used `.pressed` (a signal) instead of `.button_pressed`
+  to set the launch-on-boot checkbox state.
+- FIXED: scenes/main.tscn had a stale hand-written inline ConfigDialog subtree that
+  lacked ScrollContainer/ModelListBox and DeleteConfirmDialog. Replaced with an
+  instance of config_dialog.tscn.
+- FIXED: PTT system was fully orphaned — CommandDispatcher.push_to_talk_pressed/
+  released were never connected to the audio recording path. Connected in main.gd.
+- FIXED: push_to_talk InputMap action had zero events bound. Default: CapsLock.
+  push_to_talk_command action added.
+- FIXED: hotkeys_editor.gd saved key strings to config but never called InputMap
+  to register them. Now calls action_erase_events + action_add_event on commit.
+- FIXED: VimController._type_text/_press_key called _whisper_node.type_text/press_key
+  (methods that don't exist there). Rerouted through OSController.type_text/press_key.
+- FIXED: VimController.use_native_input was hard-coded false. Now auto-detects
+  ClassDB.class_exists("InputInjector") in _ready().
+- FIXED: config_dialog._invoke_load_model_main called _finish_model_load synchronously
+  on success AND the async model_loaded signal also fired it — double emit of
+  SignalBus.model_ready. Now uses CONNECT_ONE_SHOT on model_loaded only.
+- FIXED: config_dialog Settings tab had a duplicate ModelPathEdit/BrowseButton/
+  LoadModelButton row alongside the Models tab browser. Removed the duplicate.
+- IMPROVED: config dialog opens with initial_position = 4 (CENTER_SCREEN).
+- IMPROVED: main viewport raised to 820x620 (was 800x500, smaller than the dialog).
+- IMPROVED: PTT mode dropdown (Hold/Toggle) added to Settings tab.
+
+New tasks identified and added to plan.md:
+- task-16: whichkey overlay for vim mode letter-jump hints
+- task-17: UI polish — custom Theme resource, fonts, spacing
