@@ -88,6 +88,8 @@ func _connect_signals() -> void:
 	record_button.button_up.connect(_on_record_stop)
 	config_button.pressed.connect(_on_config_pressed)
 	vim_mode_button.pressed.connect(_on_vim_mode_toggled)
+	CommandDispatcher.push_to_talk_pressed.connect(_on_record_start)
+	CommandDispatcher.push_to_talk_released.connect(_on_record_stop)
 
 	SignalBus.model_ready.connect(_on_model_ready)
 	SignalBus.model_load_failed.connect(_on_model_load_failed)

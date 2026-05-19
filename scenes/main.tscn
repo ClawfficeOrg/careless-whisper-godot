@@ -1,11 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://main_scene_cw"]
+[gd_scene load_steps=5 format=3 uid="uid://main_scene_cw"]
 
 [ext_resource type="Script" path="res://scripts/ui/main.gd" id="1_main"]
-[ext_resource type="Script" path="res://scripts/ui/config_dialog.gd" id="2_cfgdlg"]
 [ext_resource type="Script" path="res://scripts/ui/loading_overlay.gd" id="3_loading"]
-[ext_resource type="Script" path="res://scripts/ui/model_browser.gd" id="4_models"]
 [ext_resource type="Script" path="res://scripts/ui/mic_level_meter.gd" id="5_mic"]
 [ext_resource type="PackedScene" path="res://scenes/ui/history_panel.tscn" id="6_hpanel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/config_dialog.tscn" id="7_cfgdlg"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -110,146 +109,8 @@ fit_content = false
 layout_mode = 2
 custom_minimum_size = Vector2(0, 140)
 
-[node name="ConfigDialog" type="Window" parent="."]
+[node name="ConfigDialog" parent="." instance=ExtResource("7_cfgdlg")]
 unique_name_in_owner = true
-title = "Configuration"
-initial_position = 2
-size = Vector2i(520, 420)
-script = ExtResource("2_cfgdlg")
-
-[node name="MarginContainer" type="MarginContainer" parent="ConfigDialog"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_bottom = 16
-
-[node name="VBox" type="VBoxContainer" parent="ConfigDialog/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="TabContainer" type="TabContainer" parent="ConfigDialog/MarginContainer/VBox"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="Settings" type="VBoxContainer" parent="ConfigDialog/MarginContainer/VBox/TabContainer"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="PathRow" type="HBoxContainer" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings"]
-layout_mode = 2
-
-[node name="PathLbl" type="Label" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings/PathRow"]
-layout_mode = 2
-custom_minimum_size = Vector2(100, 0)
-text = "Model path:"
-
-[node name="ModelPathEdit" type="LineEdit" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings/PathRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-placeholder_text = "/path/to/ggml-base.en.bin"
-
-[node name="BrowseButton" type="Button" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings/PathRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Browse…"
-
-[node name="LangRow" type="HBoxContainer" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings"]
-layout_mode = 2
-
-[node name="LangLbl" type="Label" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings/LangRow"]
-layout_mode = 2
-custom_minimum_size = Vector2(100, 0)
-text = "Language:"
-
-[node name="LanguageEdit" type="LineEdit" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings/LangRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "en"
-max_length = 8
-
-[node name="ThreadsRow" type="HBoxContainer" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings"]
-layout_mode = 2
-
-[node name="ThreadsLbl" type="Label" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings/ThreadsRow"]
-layout_mode = 2
-custom_minimum_size = Vector2(100, 0)
-text = "Threads:"
-
-[node name="ThreadsSpin" type="SpinBox" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings/ThreadsRow"]
-unique_name_in_owner = true
-layout_mode = 2
-min_value = 1.0
-max_value = 32.0
-value = 4.0
-
-[node name="MicRow" type="HBoxContainer" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings"]
-layout_mode = 2
-
-[node name="MicLbl" type="Label" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings/MicRow"]
-layout_mode = 2
-custom_minimum_size = Vector2(100, 0)
-text = "Microphone:"
-
-[node name="MicOption" type="OptionButton" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Settings/MicRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Models" type="VBoxContainer" parent="ConfigDialog/MarginContainer/VBox/TabContainer"]
-layout_mode = 2
-script = ExtResource("4_models")
-
-[node name="ModelList" type="ItemList" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Models"]
-layout_mode = 2
-size_flags_vertical = 3
-item_count = 0
-same_column_width = true
-
-[node name="DescriptionLabel" type="Label" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Models"]
-layout_mode = 2
-text = "Select a model"
-autowrap_mode = 2
-
-[node name="ProgressBar" type="ProgressBar" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Models"]
-layout_mode = 2
-value = 0.0
-show_percentage = false
-visible = false
-
-[node name="ButtonRow" type="HBoxContainer" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Models"]
-layout_mode = 2
-
-[node name="DownloadButton" type="Button" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Models/ButtonRow"]
-layout_mode = 2
-text = "Download"
-
-[node name="DeleteButton" type="Button" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Models/ButtonRow"]
-layout_mode = 2
-text = "Delete"
-
-[node name="LoadButton" type="Button" parent="ConfigDialog/MarginContainer/VBox/TabContainer/Models/ButtonRow"]
-layout_mode = 2
-text = "Load Model"
-
-[node name="DialogButtons" type="HBoxContainer" parent="ConfigDialog/MarginContainer/VBox"]
-layout_mode = 2
-alignment = 2
-
-[node name="LoadModelButton" type="Button" parent="ConfigDialog/MarginContainer/VBox/DialogButtons"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Load Model"
-
-[node name="CloseButton" type="Button" parent="ConfigDialog/MarginContainer/VBox/DialogButtons"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Close"
 
 [node name="LoadingOverlay" type="Control" parent="."]
 unique_name_in_owner = true

@@ -8,14 +8,12 @@ extends Window
 # ---------------------------------------------------------------------------
 @onready var language_edit: LineEdit     = %LanguageEdit
 @onready var threads_spin: SpinBox       = %ThreadsSpin
-@onready var model_path_edit: LineEdit   = %ModelPathEdit
-@onready var browse_button: Button       = %BrowseButton
-@onready var load_button: Button         = %LoadModelButton
 @onready var close_button: Button        = %CloseButton
 @onready var mic_option: OptionButton    = %MicOption
 @onready var model_browser: VBoxContainer = $MarginContainer/VBox/TabContainer/Models
 @onready var _launch_on_boot: CheckBox   = %LaunchOnBootCheck
 @onready var _startup_mode: OptionButton = %StartupModeOption
+@onready var _ptt_mode_option: OptionButton = %PTTModeOption
 
 ## Whisper node reference (injected from Main scene via set_whisper_node)
 var _whisper: Node = null
@@ -59,17 +57,15 @@ func _populate_mic_dropdown() -> void:
 
 
 func _load_current_config() -> void:
-	# Populate the path field with the last saved path
-	var saved_path: String = ConfigManager.get_value("whisper.model_path", "")
-	if not saved_path.is_empty():
-		model_path_edit.text = saved_path
-
 	language_edit.text = ConfigManager.get_value("whisper.language", "en")
 	threads_spin.value = ConfigManager.get_value("whisper.threads", 4)
 
 	# Startup tab
-	_launch_on_boot.pressed = ConfigManager.get_startup_enabled()
+	_launch_on_boot.button_pressed = ConfigManager.get_startup_enabled()
 	_populate_startup_mode_option()
+
+	# PTT tab
+	_populate_ptt_mode_option()
 
 
 func _populate_startup_mode_option() -> void:
@@ -88,9 +84,15 @@ func _populate_startup_mode_option() -> void:
 			_startup_mode.select(0)
 
 
+func _populate_ptt_mode_option() -> void:
+	_ptt_mode_option.clear()
+	_ptt_mode_option.add_item("Hold to talk")
+	_ptt_mode_option.add_item("Toggle (tap)")
+	var mode: String = ConfigManager.get_ptt_mode()
+	_ptt_mode_option.select(1 if mode == "toggle" else 0)
+
+
 func _connect_signals() -> void:
-	browse_button.pressed.connect(_on_browse)
-	load_button.pressed.connect(_on_load_model)
 	close_button.pressed.connect(hide)
 	language_edit.text_changed.connect(
 		func(t: String) -> void: ConfigManager.set_value("whisper.language", t)
@@ -103,6 +105,7 @@ func _connect_signals() -> void:
 
 	_launch_on_boot.toggled.connect(_on_launch_on_boot_toggled)
 	_startup_mode.item_selected.connect(_on_startup_mode_selected)
+	_ptt_mode_option.item_selected.connect(_on_ptt_mode_selected)
 
 	# Connect to model browser's load request
 	if model_browser != null:
@@ -121,74 +124,42 @@ func _on_mic_selected(index: int) -> void:
 
 
 func _on_model_browser_load(path: String) -> void:
-	# User clicked Load in the model browser
-	model_path_edit.text = path
-	_on_load_model()
-
-
-func _on_browse() -> void:
-	var dialog := FileDialog.new()
-	dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
-	dialog.filters = PackedStringArray(["*.bin ; GGML model files"])
-	dialog.access = FileDialog.ACCESS_FILESYSTEM
-	dialog.file_selected.connect(func(path: String) -> void:
-		model_path_edit.text = path
-		dialog.queue_free()
-	)
-	add_child(dialog)
-	dialog.popup_centered(Vector2i(700, 500))
-
-
-func _on_load_model() -> void:
-	var path := model_path_edit.text.strip_edges()
 	if path.is_empty():
-		push_warning("[ConfigDialog] no model path specified")
 		return
-
-	# Disable UI while loading
-	load_button.disabled = true
-	load_button.text = "Loading…"
 	close_button.disabled = true
-
-	# Save the full path for next startup autoload
 	ConfigManager.set_value("whisper.model_path", path)
 	SignalBus.model_loading.emit(path.get_file())
-
 	if _whisper != null and _whisper.has_method("load_model"):
 		_whisper.threads = ConfigManager.get_value("whisper.threads", 4)
 		_whisper.language = ConfigManager.get_value("whisper.language", "en")
-		# Load in a thread to keep UI responsive
 		_load_model_threaded(path)
 	else:
 		push_warning("[ConfigDialog] WhisperCpp node not available — placeholder mode")
-		# Simulate success so the UI updates
 		await get_tree().create_timer(0.5).timeout
 		_finish_model_load(path.get_file(), true)
 		ConfigManager.set_value("whisper.model", path.get_file().replace(".bin", ""))
 
 
 func _load_model_threaded(path: String) -> void:
-	# Call load_model on the main thread. The WhisperCpp extension now
-	# performs non-blocking loading internally and will emit model_loaded or
-	# model_load_failed via the main-thread polling channel. Calling the
-	# extension from a GDScript Thread causes a cross-thread Godot API call
-	# (UB) so we must invoke it on the main thread.
 	call_deferred("_invoke_load_model_main", path)
+
 
 func _invoke_load_model_main(path: String) -> void:
 	if _whisper == null:
 		return
-	var success: bool = _whisper.load_model(path)
-	# If the extension returns immediate success, finish; otherwise wait
-	# for the model_loaded or model_load_failed signals emitted by the ext.
-	if success:
-		_finish_model_load(path.get_file(), true)
+	# Connect one-shot so _finish_model_load fires exactly once when the
+	# extension finishes loading asynchronously. Do NOT call _finish_model_load
+	# synchronously — load_model() returning true just means "accepted", not "done".
+	if not _whisper.is_connected("model_loaded", _on_whisper_model_loaded):
+		_whisper.model_loaded.connect(_on_whisper_model_loaded, CONNECT_ONE_SHOT)
+	_whisper.load_model(path)
+
+
+func _on_whisper_model_loaded(path: String) -> void:
+	_finish_model_load(path.get_file(), true)
 
 
 func _finish_model_load(model_name: String, success: bool) -> void:
-	# Re-enable UI
-	load_button.disabled = false
-	load_button.text = "Load Model"
 	close_button.disabled = false
 
 	# Clean up thread
@@ -214,3 +185,9 @@ func _on_startup_mode_selected(index: int) -> void:
 	var modes: Array[String] = ["normal", "minimized", "tray"]
 	if index >= 0 and index < modes.size():
 		ConfigManager.set_startup_mode(modes[index])
+
+
+func _on_ptt_mode_selected(index: int) -> void:
+	var modes: Array[String] = ["hold", "toggle"]
+	if index >= 0 and index < modes.size():
+		CommandDispatcher.set_ptt_mode(modes[index])

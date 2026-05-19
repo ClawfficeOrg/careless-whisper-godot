@@ -1,6 +1,6 @@
 ## vim_controller.gd
 ## Handles vim mode commands via cross-platform input simulation.
-## Uses native WhisperCpp methods (enigo) when available, falls back to xdotool on Linux.
+## Uses OSController GDExtension (InputInjector/enigo) when available, falls back to xdotool on Linux.
 extends Node
 
 # ---------------------------------------------------------------------------
@@ -10,8 +10,8 @@ extends Node
 ## Whether vim integration is enabled.
 var enabled: bool = false
 
-## Use native WhisperCpp input methods (cross-platform via enigo).
-## Set to true after rebuilding whisper.cpp GDExtension with enigo support.
+## Use native OSController input methods (cross-platform via enigo).
+## Auto-detected in _ready() based on whether the InputInjector GDExtension is loaded.
 var use_native_input: bool = false
 
 ## Path to xdotool binary (fallback for Linux without native support).
@@ -30,13 +30,18 @@ var _whisper_node: Node = null
 
 func _ready() -> void:
 	CommandDispatcher.command_executed.connect(_on_command_executed)
+	# Auto-detect native input via OSController GDExtension
+	if ClassDB.class_exists("InputInjector"):
+		use_native_input = true
+		if debug_output:
+			push_warning("[VimController] InputInjector available — native input enabled")
 
 
 ## Set the WhisperCpp node reference for native input methods.
 func set_whisper_node(node: Node) -> void:
 	_whisper_node = node
 	if debug_output:
-		push_warning("[VimController] WhisperNode set, native input available: %s" % _has_native_input())
+		push_warning("[VimController] WhisperNode set (transcription engine); native input via OSController: %s" % _has_native_input())
 
 
 # ---------------------------------------------------------------------------
@@ -90,7 +95,7 @@ func _vim_normal_mode() -> void:
 
 ## Check if native input methods are available.
 func _has_native_input() -> bool:
-	return use_native_input and _whisper_node != null and _whisper_node.has_method("type_text")
+	return use_native_input and has_node("/root/OSController") and OSController.input_injector != null
 
 
 ## Type text using native method or xdotool fallback.
@@ -99,8 +104,7 @@ func _type_text(text: String) -> void:
 		return
 
 	if _has_native_input():
-		# Use cross-platform native input (enigo)
-		var success: bool = _whisper_node.type_text(text)
+		var success: bool = OSController.type_text(text)
 		if debug_output:
 			push_warning("[VimController] native type '%s' -> %s" % [text, success])
 	else:
@@ -117,8 +121,7 @@ func _press_key(key: String) -> void:
 		return
 
 	if _has_native_input():
-		# Use cross-platform native input (enigo)
-		var success: bool = _whisper_node.press_key(key)
+		var success: bool = OSController.press_key(key)
 		if debug_output:
 			push_warning("[VimController] native key '%s' -> %s" % [key, success])
 	else:

@@ -8,8 +8,6 @@
 ## by the scene tree. Extends Node instead of RefCounted.
 extends Node
 
-class_name OSController
-
 var window_manager: Object = null
 var input_injector: Object = null
 
