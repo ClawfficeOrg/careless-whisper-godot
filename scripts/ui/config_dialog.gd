@@ -147,7 +147,7 @@ func _load_model_threaded(path: String) -> void:
 func _invoke_load_model_main(path: String) -> void:
 	if _whisper == null:
 		return
-	# Connect one-shot so _finish_model_load fires exactly once when the
+	push_warning("[config_dialog] _invoke_load_model_main calling load_model: %s" % path)
 	# extension finishes loading asynchronously. Do NOT call _finish_model_load
 	# synchronously — load_model() returning true just means "accepted", not "done".
 	if not _whisper.is_connected("model_loaded", _on_whisper_model_loaded):

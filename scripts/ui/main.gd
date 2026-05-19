@@ -306,6 +306,8 @@ func _refresh_model_label() -> void:
 func _autoload_model() -> void:
 	if not _whisper_available or whisper == null:
 		return
+	if _model_loaded:
+		return
 	var saved_path: String = ConfigManager.get_value("whisper.model_path", "")
 	if saved_path.is_empty():
 		status_label.text = "Ready — open Config to load a model"
@@ -314,6 +316,7 @@ func _autoload_model() -> void:
 		status_label.text = "Saved model not found: %s" % saved_path
 		return
 	status_label.text = "Loading model…"
+	push_warning("[main] _autoload_model calling load_model: %s" % saved_path)
 	whisper.threads = ConfigManager.get_value("whisper.threads", 4)
 	whisper.language = ConfigManager.get_value("whisper.language", "en")
 	# One-shot: when the extension signals completion, update main UI state once.
