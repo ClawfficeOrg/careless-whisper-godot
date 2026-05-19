@@ -104,9 +104,8 @@ func _connect_signals() -> void:
 		whisper.transcription_error.connect(func(msg: String) -> void:
 			SignalBus.transcription_error.emit(msg)
 		)
-		whisper.model_loaded.connect(func(path: String) -> void:
-			SignalBus.model_ready.emit(path.get_file())
-		)
+		# model_loaded is handled by config_dialog when loading via UI.
+		# For the startup autoload path, _autoload_model connects one-shot below.
 
 	# Wire config dialog with the whisper node so it can load models
 	config_dialog.set_whisper_node(whisper)
@@ -317,4 +316,8 @@ func _autoload_model() -> void:
 	status_label.text = "Loading model…"
 	whisper.threads = ConfigManager.get_value("whisper.threads", 4)
 	whisper.language = ConfigManager.get_value("whisper.language", "en")
+	# One-shot: when the extension signals completion, update main UI state once.
+	whisper.model_loaded.connect(func(path: String) -> void:
+		SignalBus.model_ready.emit(path.get_file())
+	, CONNECT_ONE_SHOT)
 	whisper.load_model(saved_path)

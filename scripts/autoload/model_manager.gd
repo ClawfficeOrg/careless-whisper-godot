@@ -126,20 +126,36 @@ func get_local_models() -> Array[String]:
 	return models
 
 
-## Check if a specific model is downloaded
+## Check if a specific model is downloaded.
+## Also checks res://models/ (project-local) as a fallback.
 func is_model_downloaded(model_name: String) -> bool:
 	if not AVAILABLE_MODELS.has(model_name):
 		return false
 	var filename: String = AVAILABLE_MODELS[model_name].get("filename", "")
-	return FileAccess.file_exists(MODELS_DIR.path_join(filename))
+	return FileAccess.file_exists(_find_model_file(filename))
 
 
-## Get the full path to a model file
+## Get the full path to a model file.
+## Checks user://models/ first, then res://models/ (project-local directory).
 func get_model_path(model_name: String) -> String:
 	if not AVAILABLE_MODELS.has(model_name):
 		return ""
 	var filename: String = AVAILABLE_MODELS[model_name].get("filename", "")
-	return MODELS_DIR.path_join(filename)
+	return _find_model_file(filename)
+
+
+## Search for a model filename in all known locations.
+## Returns the first path where the file exists, or the default user://models/ path.
+func _find_model_file(filename: String) -> String:
+	var user_path: String = MODELS_DIR.path_join(filename)
+	if FileAccess.file_exists(user_path):
+		return user_path
+	# Also check res://models/ (project directory — useful during development)
+	var res_path: String = "res://models/".path_join(filename)
+	if FileAccess.file_exists(res_path):
+		return ProjectSettings.globalize_path(res_path)
+	# Default write location even if not found yet
+	return user_path
 
 
 ## Return the actual file size in bytes for a downloaded model, or 0 if missing.

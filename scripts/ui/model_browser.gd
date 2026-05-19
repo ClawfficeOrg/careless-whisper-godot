@@ -12,6 +12,7 @@ const ITEM_SCENE: PackedScene = preload("res://scenes/ui/model_item.tscn")
 @onready var _model_list_box: VBoxContainer = $ScrollContainer/ModelListBox
 @onready var _download_button: Button = $ButtonRow/DownloadButton
 @onready var _load_button: Button = $ButtonRow/LoadButton
+@onready var _browse_button: Button = $BrowseRow/BrowseButton
 @onready var _description_label: Label = $DescriptionLabel
 @onready var _progress_bar: ProgressBar = $ProgressBar
 @onready var _delete_confirm: ConfirmationDialog = $DeleteConfirmDialog
@@ -32,6 +33,7 @@ var _pending_delete: String = ""
 func _ready() -> void:
 	_download_button.pressed.connect(_on_download_pressed)
 	_load_button.pressed.connect(_on_load_pressed)
+	_browse_button.pressed.connect(_on_browse_pressed)
 	_delete_confirm.confirmed.connect(_on_delete_confirmed)
 
 	ModelManager.download_started.connect(_on_download_started)
@@ -161,6 +163,26 @@ func _on_load_pressed() -> void:
 	ConfigManager.set_value("whisper.model", _selected_model)
 	ConfigManager.set_value("whisper.model_path", path)
 	load_model_requested.emit(path)
+
+
+func _on_browse_pressed() -> void:
+	var dialog := FileDialog.new()
+	dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	dialog.filters = PackedStringArray(["*.bin ; GGML model files"])
+	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	# Pre-navigate to user://models if it exists, otherwise project models dir
+	var user_models: String = ProjectSettings.globalize_path("user://models")
+	if DirAccess.open("user://models") != null:
+		dialog.current_dir = user_models
+	elif DirAccess.open("res://models") != null:
+		dialog.current_dir = ProjectSettings.globalize_path("res://models")
+	dialog.file_selected.connect(func(path: String) -> void:
+		load_model_requested.emit(path)
+		dialog.queue_free()
+	)
+	dialog.canceled.connect(func() -> void: dialog.queue_free())
+	get_tree().root.add_child(dialog)
+	dialog.popup_centered(Vector2i(700, 500))
 
 
 # ---------------------------------------------------------------------------
