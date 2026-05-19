@@ -124,9 +124,9 @@ func _on_mic_selected(index: int) -> void:
 
 
 func _on_model_browser_load(path: String) -> void:
+	push_warning("[config_dialog] _on_model_browser_load called: %s" % path)
 	if path.is_empty():
 		return
-	close_button.disabled = true
 	ConfigManager.set_value("whisper.model_path", path)
 	SignalBus.model_loading.emit(path.get_file())
 	if _whisper != null and _whisper.has_method("load_model"):
